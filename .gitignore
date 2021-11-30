@@ -1,0 +1,5 @@
+# This project's binary
+site24x7
+
+# dotenv environment variables file
+.env
