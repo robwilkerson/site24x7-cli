@@ -15,7 +15,12 @@ limitations under the License.
 */
 package main
 
-import "site24x7/cmd"
+import (
+	"site24x7/api"
+	"site24x7/cmd"
+
+	_ "github.com/joho/godotenv/autoload" // Autoload .env values
+)
 
 func main() {
 	cmd.Execute()
