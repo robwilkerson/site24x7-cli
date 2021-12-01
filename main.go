@@ -23,5 +23,6 @@ import (
 )
 
 func main() {
+	api.Authenticate()
 	cmd.Execute()
 }
