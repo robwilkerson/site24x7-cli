@@ -21,7 +21,7 @@ If you're interested in contributing to the improvement, you'll need the tools t
 ## Installation
 
 1. Download a released binary and place it into your `$PATH`
-1. Run `site24x7 configure` to provide authentication and authorization credentials
+1. Run `site24x7 configure` to provide authentication and authorization credentials; you'll need to have your client ID, client secret, and grant token handy
 1. `site24x7 --help` to see what's available
 
 ## Development
@@ -35,5 +35,5 @@ If you're interested in contributing to the improvement, you'll need the tools t
 
         go install
 
-1. Create a configuration file, by building the tool and running `./site24x7 configure`.
-1. Write code, submit pull requests!
+1. Create a configuration file by building the tool (`go build`) and running `./site24x7 configure`; you'll need to have your client ID, client secret, and grant token handy
+1. Write code, test it, and submit pull requests!
