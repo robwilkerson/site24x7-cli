@@ -26,8 +26,6 @@ If you're interested in contributing to the improvement, you'll need the tools t
 
 ## Development
 
-As mentioned above, these instructions will assume you're installing Go using asdf. If you choose another path, that's cool too.
-
 1. Clone this repository
 1. Create a `.env` file and supply appropriate values
 
