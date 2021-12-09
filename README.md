@@ -35,9 +35,5 @@ If you're interested in contributing to the improvement, you'll need the tools t
 
         go install
 
-1. Create a configuration file, either manually (see the _Configuration_ section below), or by building the tool and running `./site24x7 configure`.
+1. Create a configuration file, by building the tool and running `./site24x7 configure`.
 1. Write code, submit pull requests!
-
-## Configuration
-
-The tool uses an external configuration file for authentication and authorization values and environment variables for less secret, but commonly used values.
