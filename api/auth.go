@@ -6,9 +6,7 @@
 package api
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -31,29 +29,41 @@ type Token struct {
 // Configure accepts a Site24x7 grant token and returns a long-lived refresh
 // token.
 func Configure(grantToken string) (string, error) {
-	t, err := exchangeToken(grantToken, "authorization_code")
+	exchangableToken := map[string]string{
+		"grantType": "authorization_code",
+		"key":       "code",
+		"value":     grantToken,
+	}
+
+	t, err := exchangeToken(exchangableToken)
 	if err != nil {
 		return "", err
 	}
 
-	return t, nil
+	return t.RefreshToken, nil
 }
 
-// Authenticate fetches and stores a short-lived access token that will be used
-// in subsequent API calls.
+// Authenticate exchanges a refresh token for a short-lived access token and
+// stores the latter for use in subsequent API calls.
 func Authenticate() {
-	t, err := exchangeToken(viper.GetString("auth.refresh_token"), "refresh_token")
+	exchangableToken := map[string]string{
+		"grantType": "refresh_token",
+		"key":       "refresh_token",
+		"value":     viper.GetString("auth.refresh_token"),
+	}
+
+	t, err := exchangeToken(exchangableToken)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	os.Setenv("AUTH_ACCESS_TOKEN", t)
+	os.Setenv("AUTH_ACCESS_TOKEN", t.AccessToken)
 }
 
 // exchangeToken exchanges a grant token (aka "authorization code") for a
 // refresh token or a refresh token for an access token.
-func exchangeToken(token string, grantType string) (string, error) {
+func exchangeToken(token map[string]string) (*Token, error) {
 
 	// Build the request
 
@@ -61,53 +71,25 @@ func exchangeToken(token string, grantType string) (string, error) {
 	data := url.Values{
 		"client_id":     {viper.GetString("auth.client_id")},
 		"client_secret": {viper.GetString("auth.client_secret")},
-		"grant_type":    {grantType},
+		"grant_type":    {token["grantType"]},
+		token["key"]:    {token["value"]},
 	}
-	// Include the appropriate token
-	switch grantType {
-	case "authorization_code":
-		data.Set("code", token)
-	case "refresh_token":
-		data.Set("refresh_token", token)
-	}
-	payload := strings.NewReader(data.Encode())
-	req, err := http.NewRequest("POST", endpoint, payload)
-	if err != nil {
-		return "", fmt.Errorf("[Auth.exchangeToken] ERROR: Unable to create request (%s)", err)
-	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Send the request
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("[Auth.exchangeToken] ERROR: unable to execute request (%s)", err)
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return "", fmt.Errorf("[Auth.exchangeToken] ERROR: Unable to read response body (%s)", err)
+	body := strings.NewReader(data.Encode())
+	headers := http.Header{
+		"Content-Type": {"application/x-www-form-urlencoded"},
 	}
 
-	// Unmarshal the response
-	var t Token
-	if err := json.Unmarshal(body, &t); err != nil {
-		return "", fmt.Errorf("[Auth.exchangeToken] ERROR: Unable to  parse response body (%s)", err)
+	t := Token{}
+	if err := t.Fetch(endpoint, "POST", body, headers); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
+
 	if t.Error != nil {
-		return "", fmt.Errorf("[Auth.exchangeToken] ERROR: received an error response from Site24x7 (%s)", *t.Error)
+		return nil, fmt.Errorf("[Auth.exchangeToken] ERROR: received an error response from Site24x7 (%s)", *t.Error)
 	}
 
-	// Return the appropriate exchange token
-	switch grantType {
-	case "authorization_code":
-		return t.RefreshToken, nil
-	case "refresh_token":
-		return t.AccessToken, nil
-	default:
-		return "", fmt.Errorf("[Auth.exchangeToken] ERROR: Unrecognized grant type (%s)", grantType)
-	}
+	return &t, nil
 }
 
 // httpHeader returns the header name and value required to authenticate each
