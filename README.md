@@ -10,6 +10,8 @@ This is currently _unreleased software_. The content of this README is anticipat
 2. A registered [Site24x7 application](https://api-console.zoho.com)
 3. Access to the client ID, client secret, and an appropriately scoped grant token for the aforementioned application
 
+To register an application and generate a client ID, client secret, and grant token, follow the [API authentication instructions](https://www.site24x7.com/help/api/#authentication)
+
 ### For Developers
 
 If you're interested in contributing to the improvement, you'll need the tools to do so.

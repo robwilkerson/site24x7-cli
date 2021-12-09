@@ -30,6 +30,7 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "site24x7",
 	Short: "A command line client for Site24x7",
+	Long:  "A command line client for Site24x7.",
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

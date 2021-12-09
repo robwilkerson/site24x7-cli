@@ -26,8 +26,8 @@ import (
 // userCmd represents the user command
 var userCmd = &cobra.Command{
 	Use:   "user <command>",
-	Short: "Performs user actions on a Site24x7 account",
-	Long:  `Performs user actions on a Site24x7 account`,
+	Short: "Performs user actions",
+	Long:  `Performs user actions.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// authenticate before all non-config commands
 		api.Authenticate()
@@ -38,11 +38,12 @@ var userCmd = &cobra.Command{
 	// },
 }
 
-// createCmd represents the user create subcommand
-var createCmd = &cobra.Command{
-	Use:   "create <email address>",
-	Short: "Creates a new user",
-	Long:  `Creates a new user.`,
+// userCreateCmd represents the user create subcommand
+var userCreateCmd = &cobra.Command{
+	Use:     "create <email address>",
+	Short:   "Creates a new user",
+	Long:    `Creates a new user.`,
+	Aliases: []string{"add", "new"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		expectedArgLen := 1
 		actualArgLen := len(args)
@@ -69,14 +70,14 @@ var createCmd = &cobra.Command{
 
 		err := u.Create()
 		if err != nil {
-			fmt.Printf("%s", err)
+			fmt.Println(err)
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(userCmd)
-	userCmd.AddCommand(createCmd)
+	userCmd.AddCommand(userCreateCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -89,9 +90,9 @@ func init() {
 	// userCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
 	// Mandatory values with sensible defaults
-	createCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
-	createCmd.Flags().StringP("role", "r", "NoAccess", "Role assigned to the user for Site24x7 access")
-	createCmd.Flags().StringSlice("notify-by", []string{"email"}, "Medium by which the user will receive alerts")
+	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
+	userCreateCmd.Flags().StringP("role", "r", "NoAccess", "Role assigned to the user for Site24x7 access")
+	userCreateCmd.Flags().StringSlice("notify-by", []string{"email"}, "Medium by which the user will receive alerts")
 
 	// Optional values; we'll start simple and not support these
 	// createCmd.Flags().String("statusiq-role", "", "Role assigned to the user for accessing StatusIQ")
