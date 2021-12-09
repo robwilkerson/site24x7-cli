@@ -29,6 +29,7 @@ var userCmd = &cobra.Command{
 	Short: "Performs user actions on a Site24x7 account",
 	Long:  `Performs user actions on a Site24x7 account`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// authenticate before all non-config commands
 		api.Authenticate()
 	},
 	// Run: func(cmd *cobra.Command, args []string) {

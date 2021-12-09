@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"site24x7/api"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -26,18 +27,40 @@ import (
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
-	Use:   "config <grant token>",
+	Use:   "config",
 	Short: "Configures the Site24x7 CLI tool for use",
-	Long: `Configures the Site24x7 CLI tool for use
-	
-Accepts a manually-generated, custom-scoped, short-lived grant token, exchanges
-that for a long-lived refreh token and saves that refresh token to the user's
-home directory, e.g. ~/<username>/.site24x7cli/config.`,
+	Long: `Configures the Site24x7 CLI tool for use.
+
+Requests and stores authentication details that are required to access the
+Site24x7 API for a given account. This data is stored in a config file located
+at $HOME/<username>/.site24x7.yaml.`,
 	Aliases: []string{"configure"},
+	PreRun: func(cmd *cobra.Command, args []string) {
+		// If a config file already exists, verify that the user wants to
+		// overwrite that file.
+
+		var overwrite string
+
+		if f := viper.ConfigFileUsed(); f != "" {
+			fmt.Print("A config file already exists, do you want to overwrite it? [y/N]: ")
+			fmt.Scanln(&overwrite)
+
+			if strings.ToUpper(overwrite) != "Y" {
+				fmt.Println("Existing file will not be overwritten; exiting.")
+				os.Exit(0)
+			}
+		}
+	},
 	Run: func(cmd *cobra.Command, args []string) {
+		var clientID string
+		var clientSecret string
 		var grantToken string
 
-		// TODO: get user input for client ID and client secret
+		// Request the client id and secret
+		fmt.Print("Site24x7 Client ID [None]: ")
+		fmt.Scanln(&clientID)
+		fmt.Print("Site24x7 Client Secret [None]: ")
+		fmt.Scanln(&clientSecret)
 
 		// Request the grant token from the user
 		fmt.Print("Site24x7 Grant Token [None]: ")
@@ -55,10 +78,11 @@ home directory, e.g. ~/<username>/.site24x7cli/config.`,
 		}
 
 		// Write the refresh token to the config file provided by Cobra
+		viper.Set("auth.client_id", clientID)
+		viper.Set("auth.client_secret", clientSecret)
 		viper.Set("auth.refresh_token", refreshToken)
-		err = viper.WriteConfig()
-		if err != nil {
-			fmt.Printf("Error complete configuration")
+		if err = viper.WriteConfig(); err != nil {
+			fmt.Printf("Error completing configuration")
 			os.Exit(1)
 		}
 

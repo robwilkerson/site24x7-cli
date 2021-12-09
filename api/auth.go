@@ -59,8 +59,8 @@ func exchangeToken(token string, grantType string) (string, error) {
 
 	endpoint := fmt.Sprintf("%s/oauth/v2/token", os.Getenv("AUTH_BASE_URL"))
 	data := url.Values{
-		"client_id":     {os.Getenv("AUTH_CLIENT_ID")},
-		"client_secret": {os.Getenv("AUTH_CLIENT_SECRET")},
+		"client_id":     {viper.GetString("auth.client_id")},
+		"client_secret": {viper.GetString("auth.client_secret")},
 		"grant_type":    {grantType},
 	}
 	// Include the appropriate token
