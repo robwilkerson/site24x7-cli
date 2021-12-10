@@ -36,35 +36,52 @@ Site24x7 API for a given account. This data is stored in a config file located
 at $HOME/<username>/.site24x7.yaml.`,
 	Aliases: []string{"configure"},
 	PreRun: func(cmd *cobra.Command, args []string) {
+		updateRefreshTokenOnly, _ := cmd.Flags().GetBool("refresh-token")
+
 		// If a config file already exists, verify that the user wants to
-		// overwrite that file.
+		// overwrite that file (or a given item in it).
 
 		var overwrite string
 
 		if f := viper.ConfigFileUsed(); f != "" {
-			fmt.Print("A config file already exists, do you want to overwrite it? [y/N]: ")
+			if !updateRefreshTokenOnly {
+				fmt.Print("A config file already exists, do you want to overwrite it? [y/N]: ")
+			} else {
+				fmt.Print("A config file already exists, do you want to overwrite its refresh_token value? [y/N]: ")
+			}
 			fmt.Scanln(&overwrite)
 
 			if strings.ToUpper(overwrite) != "Y" {
-				fmt.Println("Existing file will not be overwritten; exiting.")
+				fmt.Println("No changes were made; exiting.")
 				os.Exit(0)
 			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+		updateRefreshTokenOnly, _ := cmd.Flags().GetBool("refresh-token")
+
 		var clientID string
 		var clientSecret string
 		var grantToken string
 
 		// Request the client id and secret
-		fmt.Print("Site24x7 Client ID [None]: ")
-		fmt.Scanln(&clientID)
-		fmt.Print("Site24x7 Client Secret [None]: ")
-		fmt.Scanln(&clientSecret)
+		if !updateRefreshTokenOnly {
+			fmt.Print("Site24x7 Client ID [None]: ")
+			fmt.Scanln(&clientID)
+			fmt.Print("Site24x7 Client Secret [None]: ")
+			fmt.Scanln(&clientSecret)
+
+			if clientID == "" || clientSecret == "" {
+				fmt.Println("At least one empty value provided; nothing to do.")
+				fmt.Println("Without providing both a client id and secret, this tool is useless.")
+				os.Exit(0)
+			}
+		}
 
 		// Request the grant token from the user
 		fmt.Print("Site24x7 Grant Token [None]: ")
 		fmt.Scanln(&grantToken)
+
 		if grantToken == "" {
 			fmt.Printf("No grant token provided; nothing to do\n")
 			os.Exit(0)
@@ -73,13 +90,16 @@ at $HOME/<username>/.site24x7.yaml.`,
 		// Exchange the grant token for a refresh token
 		refreshToken, err := api.Configure(grantToken)
 		if err != nil {
+			fmt.Println("Unable to exchange the grant token provided for a refresh token.")
 			fmt.Printf("%s\n", err)
 			os.Exit(1)
 		}
 
-		// Write the refresh token to the config file provided by Cobra
-		viper.Set("auth.client_id", clientID)
-		viper.Set("auth.client_secret", clientSecret)
+		// Write the information provided to the Cobra config file
+		if !updateRefreshTokenOnly {
+			viper.Set("auth.client_id", clientID)
+			viper.Set("auth.client_secret", clientSecret)
+		}
 		viper.Set("auth.refresh_token", refreshToken)
 		if err = viper.WriteConfig(); err != nil {
 			fmt.Printf("Error completing configuration")
@@ -102,4 +122,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// configCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	configCmd.Flags().BoolP("refresh-token", "r", false, "Updates the refresh token only")
 }
