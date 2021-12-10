@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"site24x7/api"
 
 	"github.com/spf13/cobra"
@@ -55,9 +56,9 @@ var monitorGroupCreateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		mg := api.MonitorGroup{Name: args[0]}
 
-		err := mg.Create()
-		if err != nil {
+		if err := mg.Create(); err != nil {
 			fmt.Println(err)
+			os.Exit(1)
 		}
 	},
 }

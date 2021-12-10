@@ -1,10 +1,8 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -86,48 +84,33 @@ type User struct {
 	Zuid             string                 `json:"zuid"`
 }
 
-// getUsers returns all users on the account
+// getUsers returns all users on the account.
 func getUsers() ([]User, error) {
-	// Build the request
-	endpoint := fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL"))
-	req, err := http.NewRequest("GET", endpoint, nil)
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
+		Method:   "GET",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
 	if err != nil {
-		return nil, fmt.Errorf("[getUsers] ERROR: Unable to create request (%s)", err)
-	}
-	authH, authV := httpHeader()
-	req.Header.Set("Accept", "application/json; version=2.0")
-	req.Header.Set(authH, authV)
-
-	// Send the request
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("[getUsers] ERROR: unable to execute request (%s)", err)
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, fmt.Errorf("[getUsers] ERROR: Unable to read response body (%s)", err)
+		return nil, err
 	}
 
-	// Unmarshal the top level response
-	var r ApiResponse
-	if err := json.Unmarshal(body, &r); err != nil {
-		return nil, fmt.Errorf("[getUsers] ERROR: Unable to  parse response body (%s)", err)
-	}
-
-	// Unmarshal the response data component
 	var u []User
-	err = json.Unmarshal(r.Data, &u)
+	err = json.Unmarshal(res.Data, &u)
 	if err != nil {
-		return nil, fmt.Errorf("[getUsers] ERROR: Unable to  parse response.Data (%s)", err)
+		return nil, fmt.Errorf("[getUsers] ERROR: Unable to  parse response data (%s)", err)
 	}
 
 	return u, nil
 }
 
 // UserExists determines whether a given user, identified by email address,
-// already exists in the Site24x7 account
+// already exists in the Site24x7 account.
 func UserExists(email string) (bool, error) {
 	users, err := getUsers()
 	if err != nil {
@@ -155,11 +138,8 @@ func (u *User) Create() error {
 		return &ConflictError{fmt.Sprintf("[User.Create] CONFLICTERROR: a user with this email address (%s) already exists on this account", u.EmailAddress)}
 	}
 
-	// Build the request
-
-	// TODO: Send alert_settings config as flag options; these are hard coded
-	endpoint := fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL"))
-	reqBody := map[string]interface{}{
+	// TODO: replace hard-coded values with flag data
+	data, _ := json.Marshal(map[string]interface{}{
 		"display_name":  u.Name,
 		"email_address": u.EmailAddress,
 		"user_role":     u.Role,
@@ -177,52 +157,29 @@ func (u *User) Create() error {
 			"applogs": []int{1},
 			"anomaly": []int{1},
 		},
+	})
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
+		Method:   "POST",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: data,
 	}
-	b, err := json.Marshal(reqBody)
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
 	if err != nil {
-		return fmt.Errorf("[User.Create] ERROR: Unable to create request body (%s)", err)
+		return err
 	}
-	req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(b))
-	if err != nil {
-		return fmt.Errorf("[User.Create] ERROR: Unable to create request (%s)", err)
-	}
-	authH, authV := httpHeader()
-	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
-	req.Header.Set("Accept", "application/json; version=2.0")
-	req.Header.Set(authH, authV)
-
-	// Send the request
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("[User.Create] ERROR: unable to execute request (%s)", err)
-	}
-	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return fmt.Errorf("[User.Create] ERROR: Unable to read response body (%s)", err)
-	}
-
-	// Unmarshal the top level response
-	var r ApiResponse
-	if err := json.Unmarshal(body, &r); err != nil {
-		return fmt.Errorf("[User.Create] ERROR: Unable to parse response body (%s)", err)
-	}
-	// If there's no data and/or the message doesn't specify success, something went sideways
-	if r.Data == nil || r.Message != "success" {
-		return fmt.Errorf("[User.Create] ERROR: %s", r.Message)
+	if res.Data == nil || res.Message != "success" {
+		return fmt.Errorf("[User.Create] ERROR: %s", res.Message)
 	}
 
 	// Unmarshal the domain data from the response
-	err = json.Unmarshal(r.Data, &u)
+	err = json.Unmarshal(res.Data, &u)
 	if err != nil {
 		return fmt.Errorf("[User.Create] ERROR: Unable to  parse response data (%s)", err)
 	}
 
-	if r.Message == "success" {
-		return nil
-	} else {
-		return fmt.Errorf("[User.Create] ERROR: An unexpected error occurred; code: %d, message: %s", r.Code, r.Message)
-	}
+	return nil
 }

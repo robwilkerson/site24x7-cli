@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -26,8 +25,8 @@ type Token struct {
 	Error        *string `json:"error"`
 }
 
-// Configure accepts a Site24x7 grant token and returns a long-lived refresh
-// token.
+// Configure exchanges a short-lived grant token (a.k.a. authorization code) and
+// returns a long-lived refresh token.
 func Configure(grantToken string) (string, error) {
 	exchangableToken := map[string]string{
 		"grantType": "authorization_code",
@@ -64,32 +63,30 @@ func Authenticate() {
 // exchangeToken exchanges a grant token (aka "authorization code") for a
 // refresh token or a refresh token for an access token.
 func exchangeToken(token map[string]string) (*Token, error) {
-
-	// Build the request
-
-	endpoint := fmt.Sprintf("%s/oauth/v2/token", os.Getenv("AUTH_BASE_URL"))
-	data := url.Values{
-		"client_id":     {viper.GetString("auth.client_id")},
-		"client_secret": {viper.GetString("auth.client_secret")},
-		"grant_type":    {token["grantType"]},
-		token["key"]:    {token["value"]},
-	}
-	body := strings.NewReader(data.Encode())
-	headers := http.Header{
-		"Content-Type": {"application/x-www-form-urlencoded"},
-	}
-
-	t := Token{}
-	if err := t.Fetch(endpoint, "POST", body, headers); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/oauth/v2/token", os.Getenv("AUTH_BASE_URL")),
+		Method:   "POST",
+		Headers: http.Header{
+			"Content-Type": {"application/x-www-form-urlencoded"},
+		},
+		Body: nil,
+		QueryString: url.Values{
+			"client_id":     {viper.GetString("auth.client_id")},
+			"client_secret": {viper.GetString("auth.client_secret")},
+			"grant_type":    {token["grantType"]},
+			token["key"]:    {token["value"]},
+		},
 	}
 
+	t, err := req.FetchToken()
+	if err != nil {
+		return nil, err
+	}
 	if t.Error != nil {
 		return nil, fmt.Errorf("[Auth.exchangeToken] ERROR: received an error response from Site24x7 (%s)", *t.Error)
 	}
 
-	return &t, nil
+	return t, nil
 }
 
 // httpHeader returns the header name and value required to authenticate each
