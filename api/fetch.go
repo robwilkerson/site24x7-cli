@@ -45,7 +45,7 @@ type EmptyApiResponse struct {
 // body contains serialized form data rather than json. The API response itself
 // also doesn't return the traditional schema so it just feels a little cleaner
 // to handle it separately from other fetches.
-func (r *Request) FetchToken() (*Token, error) {
+func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	// Weirdness #1: serialize the query string data so it can be sent as the
 	// request body. ¯\_(ツ)_/¯
 	body := strings.NewReader(r.QueryString.Encode())
@@ -68,7 +68,7 @@ func (r *Request) FetchToken() (*Token, error) {
 
 	// Weirdness #2: the endpoint returns a token, but not in ApiResponse.Data
 	// like, well, every other endpoint I've tried thus far.
-	var t Token
+	var t AuthToken
 	if err := json.Unmarshal(b, &t); err != nil {
 		return nil, fmt.Errorf("[Token.Fetch] ERROR: Unable to  parse response body (%s)", err)
 	}

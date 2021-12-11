@@ -14,9 +14,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-// Token contains the data returned from a call to exchange either a grant or
+// AuthToken contains the data returned from a call to exchange either a grant or
 // a refresh token for an access token.
-type Token struct {
+type AuthToken struct {
 	AccessToken  string  `json:"access_token"`
 	RefreshToken string  `json:"refresh_token"`
 	ExpiresIn    int     `json:"expires_in"`
@@ -62,7 +62,7 @@ func Authenticate() {
 
 // exchangeToken exchanges a grant token (aka "authorization code") for a
 // refresh token or a refresh token for an access token.
-func exchangeToken(token map[string]string) (*Token, error) {
+func exchangeToken(token map[string]string) (*AuthToken, error) {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/oauth/v2/token", os.Getenv("AUTH_BASE_URL")),
 		Method:   "POST",
@@ -78,7 +78,7 @@ func exchangeToken(token map[string]string) (*Token, error) {
 		},
 	}
 
-	t, err := req.FetchToken()
+	t, err := req.FetchAuthToken()
 	if err != nil {
 		return nil, err
 	}
