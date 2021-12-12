@@ -126,6 +126,25 @@ func UserExists(email string) (bool, error) {
 	return false, nil
 }
 
+// findByEmail returns a user found with a matching email address
+func (u *User) findUserByEmail() error {
+	users, err := getUsers()
+	if err != nil {
+		return err
+	}
+
+	for _, usr := range users {
+		if strings.ToLower(usr.EmailAddress) == strings.ToLower(u.EmailAddress) {
+			// Update the receiver with the official, fully hydrated user
+			*u = usr
+
+			return nil
+		}
+	}
+
+	return &NotFoundError{fmt.Sprintf("[User.findByEmail] NOTFOUNDERROR: No user with that email (%s) found", u.EmailAddress)}
+}
+
 // Create creates a new Site24x7 user. This method assumes that the CLI handler
 // has hydrated the user struct.
 func (u *User) Create() error {
@@ -179,6 +198,41 @@ func (u *User) Create() error {
 	err = json.Unmarshal(res.Data, &u)
 	if err != nil {
 		return fmt.Errorf("[User.Create] ERROR: Unable to  parse response data (%s)", err)
+	}
+
+	return nil
+}
+
+// Get returns a user on the account
+func (u *User) Get() error {
+	// If an email address is sent, convert that to an id
+	if u.EmailAddress != "" {
+		if err := u.findUserByEmail(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// If we dropped here, we can assume that an identifier was passed. We could
+	// do a "find by" operation, but getting exactly what we need should be
+	// faster.
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), u.Id),
+		Method:   "GET",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(res.Data, &u); err != nil {
+		return fmt.Errorf("[getUsers] ERROR: Unable to  parse response data (%s)", err)
 	}
 
 	return nil

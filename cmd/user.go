@@ -16,12 +16,24 @@ limitations under the License.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"site24x7/api"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
+
+func validateUserGetInput(id string, email string) error {
+	if id != "" && email != "" {
+		return fmt.Errorf("Please include either an ID OR an email address, not both")
+	} else if id == "" && email == "" {
+		return fmt.Errorf("Either an ID or an email address is required to retrieve a user")
+	}
+
+	return nil
+}
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
@@ -68,16 +80,44 @@ var userCreateCmd = &cobra.Command{
 			}
 		}
 
-		err := u.Create()
-		if err != nil {
+		if err := u.Create(); err != nil {
 			fmt.Println(err)
 		}
+	},
+}
+
+var userGetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Retrieves a specified user",
+	Long: `Retrieves a specified user.
+
+The Site24x7 API only supports retrieval by their ID, but this CLI will also
+support retrieval by email address, albeit less efficient, for improved
+usability.`,
+	Aliases: []string{"fetch", "retrieve"},
+	Run: func(cmd *cobra.Command, args []string) {
+		id, _ := cmd.Flags().GetString("id")
+		email, _ := cmd.Flags().GetString("email")
+
+		if err := validateUserGetInput(id, email); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+
+		u := api.User{Id: id, EmailAddress: email}
+		if err := u.Get(); err != nil {
+			fmt.Println(err)
+		}
+
+		out, _ := json.MarshalIndent(u, "", "    ")
+		fmt.Println(string(out))
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(userCmd)
 	userCmd.AddCommand(userCreateCmd)
+	userCmd.AddCommand(userGetCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -101,4 +141,7 @@ func init() {
 	// createCmd.Flags().String("alert-skip-days", "[]", "Days of the week on which the user should not be sent alerts - 0 (Sunday) - 7 (Saturday)")
 	// createCmd.Flags().String("alert-skip-days", "[]", "Days of the week on which the user should not be sent alerts")
 	// createCmd.Flags().StringP("job-title", "t", "", "Role assigned to the user for accessing CloudSpend")
+
+	userGetCmd.Flags().StringP("id", "i", "", "The Site24x7 user identifier")
+	userGetCmd.Flags().StringP("email", "e", "", "A user email address")
 }
