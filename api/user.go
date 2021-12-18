@@ -10,32 +10,32 @@ import (
 
 // UserRoles maps roles available for Site24x7 access
 var UserRoles = map[string]int{
-	"NoAccess":        0,
-	"SuperAdmin":      1,
-	"Admin":           2,
-	"Operator":        3,
-	"BillingContact":  4,
-	"SpokesPerson":    5,
-	"HostingProvider": 6,
-	"ReadOnly":        10,
+	"NOACCESS":     0,
+	"SUPERADMIN":   1,
+	"ADMIN":        2,
+	"OPERATOR":     3,
+	"BILLING":      4,
+	"SPOKESPERSON": 5,
+	"HOSTING":      6,
+	"READONLY":     10,
 }
 
-// cloudspendRoles maps roles available for accessing CloudSpend
+// UserCloudspendRoles maps roles available for accessing CloudSpend
 var UserCloudspendRoles = map[string]int{
-	"CostAdmin": 11,
-	"CostUser":  12,
+	"ADMIN": 11,
+	"USER":  12,
 }
 
-// statusIQRoles maps roles available for accessing StatusIQ
+// UserStatusIQRoles maps roles available for accessing StatusIQ
 var UserStatusIQRoles = map[string]int{
-	"StatusIQSuperAdmin":     21,
-	"StatusIQAdmin":          22,
-	"StatusIQSpokesPerson":   23,
-	"StatusIQBillingContact": 24,
-	"StatusIQReadOnly":       25,
+	"SUPERADMIN":   21,
+	"ADMIN":        22,
+	"SPOKESPERSON": 23,
+	"BILLING":      24,
+	"READONLY":     25,
 }
 
-// notifyMediums are communication channels through which alerts can be sent
+// UserNotifyMediums are communication channels through which alerts can be sent
 var UserNotifyMediums = map[string]int{
 	"EMAIL":   1,
 	"SMS":     2,
@@ -44,21 +44,21 @@ var UserNotifyMediums = map[string]int{
 	"TWITTER": 5,
 }
 
-// emailFormats are the possible formats that can be used for notification emails
+// UserEmailFormats are the possible formats that can be used for notification emails
 var UserEmailFormats = map[string]int{
-	"Text": 0,
+	"TEXT": 0,
 	"HTML": 1,
 }
 
-// jobTitles are the supported options for user job title
+// UserJobTitles are the supported options for user job title
 var UserJobTitles = map[string]int{
-	"Engineer":  1,
-	"CloudEng":  2,
-	"DevOps":    3,
-	"Webmaster": 4,
-	"CLevel":    5,
+	"ENGINEER":  1,
+	"CLOUDENG":  2,
+	"DEVOPS":    3,
+	"WEBMASTER": 4,
+	"CLEVEL":    5,
 	"IT":        6,
-	"Others":    7,
+	"OTHERS":    7,
 }
 
 // User defines the user data returned by Site24x7's user endpoints
@@ -78,7 +78,7 @@ type User struct {
 	NotifyMedium     []int                  `json:"notify_medium"`
 	IsEditAllowed    bool                   `json:"is_edit_allowed"`
 	MobileSettings   map[string]interface{} `json:"mobile_settings"`
-	StatusIqRole     int                    `json:"statusiq_role"`
+	StatusIQRole     int                    `json:"statusiq_role"`
 	CloudspendRole   int                    `json:"cloudspend_role"`
 	JobTitle         int                    `json:"job_title"`
 	Zuid             string                 `json:"zuid"`
@@ -101,8 +101,7 @@ func getUsers() ([]User, error) {
 	}
 
 	var u []User
-	err = json.Unmarshal(res.Data, &u)
-	if err != nil {
+	if err = json.Unmarshal(res.Data, &u); err != nil {
 		return nil, fmt.Errorf("[getUsers] ERROR: Unable to  parse response data (%s)", err)
 	}
 
@@ -158,25 +157,19 @@ func (u *User) Create() error {
 	}
 
 	// TODO: replace hard-coded values with flag data
-	data, _ := json.Marshal(map[string]interface{}{
-		"display_name":  u.Name,
-		"email_address": u.EmailAddress,
-		"user_role":     u.Role,
-		"notify_medium": u.NotifyMedium,
-		"alert_settings": map[string]interface{}{
-			"email_format":       0,
-			"dont_alert_on_days": []int{},
-			"alerting_period": map[string]string{
-				"start_time": "00:00",
-				"end_time":   "00:00",
-			},
-			"down":    []int{1},
-			"trouble": []int{1},
-			"up":      []int{1},
-			"applogs": []int{1},
-			"anomaly": []int{1},
-		},
+	// TODO: include optional data from flags
+	data, err := json.Marshal(map[string]interface{}{
+		"display_name":    u.Name,
+		"email_address":   u.EmailAddress,
+		"user_role":       u.Role,
+		"statusiq_role":   u.StatusIQRole,
+		"cloudspend_role": u.CloudspendRole,
+		"notify_medium":   u.NotifyMedium,
+		"alert_settings":  u.AlertSettings,
+		"job_title":       u.JobTitle,
 	})
+	fmt.Println(string(data))
+
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
 		Method:   "POST",
@@ -191,12 +184,12 @@ func (u *User) Create() error {
 		return err
 	}
 	if res.Data == nil || res.Message != "success" {
+		fmt.Printf("%+v", res)
 		return fmt.Errorf("[User.Create] ERROR: %s", res.Message)
 	}
 
 	// Unmarshal the domain data from the response
-	err = json.Unmarshal(res.Data, &u)
-	if err != nil {
+	if err = json.Unmarshal(res.Data, &u); err != nil {
 		return fmt.Errorf("[User.Create] ERROR: Unable to  parse response data (%s)", err)
 	}
 

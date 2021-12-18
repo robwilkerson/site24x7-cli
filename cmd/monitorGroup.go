@@ -48,7 +48,7 @@ var monitorGroupCreateCmd = &cobra.Command{
 		expectedArgLen := 1
 		actualArgLen := len(args)
 		if actualArgLen != expectedArgLen {
-			return fmt.Errorf("Expected %d arguments, received %d", expectedArgLen, actualArgLen)
+			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
 		}
 
 		return nil
