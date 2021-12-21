@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"site24x7/api"
@@ -25,30 +24,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// validateUserGetInput validates user data passed to the get command
-func validateUserGetInput(id string, email string) error {
-	if id != "" && email != "" {
-		return fmt.Errorf("please include either an ID OR an email address, not both")
-	} else if id == "" && email == "" {
-		return fmt.Errorf("either an ID or an email address is required to retrieve a user")
-	}
-
-	return nil
-}
-
-// lookupIds checks a list of key values against a map and returns a slice
-// containing each existing key's value
-func lookupIds(list []string, lookup map[string]int) []int {
-	var result []int
-
-	for _, i := range list {
-		if id, ok := lookup[strings.ToUpper(i)]; ok {
-			result = append(result, id)
-		}
-	}
-
-	return result
-}
+// func NewUserCmd(f flags, u User, g getter)
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
@@ -182,22 +158,21 @@ The Site24x7 API only supports retrieval by their ID, but this CLI will also
 support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve"},
-	Run: func(cmd *cobra.Command, args []string) {
-		id, _ := cmd.Flags().GetString("id")
-		email, _ := cmd.Flags().GetString("email")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var f userGetFlags
+		f.id, _ = cmd.Flags().GetString("id")
+		f.emailAddress, _ = cmd.Flags().GetString("email")
 
-		if err := validateUserGetInput(id, email); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+		// Do all of the work in a testable custom function
+		u := api.User{}
+		json, err := userGet(f, &u, u.Get)
+		if err != nil {
+			return err
 		}
 
-		u := api.User{Id: id, EmailAddress: email}
-		if err := u.Get(); err != nil {
-			fmt.Println(err)
-		}
+		fmt.Println(string(json))
 
-		out, _ := json.MarshalIndent(u, "", "    ")
-		fmt.Println(string(out))
+		return nil
 	},
 }
 
