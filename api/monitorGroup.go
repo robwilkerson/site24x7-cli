@@ -57,7 +57,7 @@ func MonitorGroupExists(name string) (bool, error) {
 	}
 
 	for _, g := range groups {
-		if strings.ToUpper(g.Name) == strings.ToUpper(name) {
+		if strings.EqualFold(g.Name, name) {
 			return true, nil
 		}
 	}

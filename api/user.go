@@ -117,7 +117,7 @@ func UserExists(email string) (bool, error) {
 	}
 
 	for _, u := range users {
-		if strings.ToUpper(u.EmailAddress) == strings.ToUpper(email) {
+		if strings.EqualFold(u.EmailAddress, email) {
 			return true, nil
 		}
 	}
@@ -133,7 +133,7 @@ func (u *User) findUserByEmail() error {
 	}
 
 	for _, usr := range users {
-		if strings.ToLower(usr.EmailAddress) == strings.ToLower(u.EmailAddress) {
+		if strings.EqualFold(usr.EmailAddress, u.EmailAddress) {
 			// Update the receiver with the official, fully hydrated user
 			*u = usr
 
@@ -158,7 +158,7 @@ func (u *User) Create() error {
 
 	// TODO: replace hard-coded values with flag data
 	// TODO: include optional data from flags
-	data, err := json.Marshal(map[string]interface{}{
+	data, _ := json.Marshal(map[string]interface{}{
 		"display_name":    u.Name,
 		"email_address":   u.EmailAddress,
 		"user_role":       u.Role,
