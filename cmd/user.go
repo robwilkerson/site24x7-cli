@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// userCmd represents the user command
+// userCmd represents the `user` command
 var userCmd = &cobra.Command{
 	Use:   "user <command>",
 	Short: "Performs user actions",
@@ -38,8 +38,7 @@ var userCmd = &cobra.Command{
 	// },
 }
 
-// userCreateCmd represents the user create subcommand
-// TODO: Add flags for remaining data points that can be sent
+// userCreateCmd represents the `user create` subcommand
 var userCreateCmd = &cobra.Command{
 	Use:   "create <email address>",
 	Short: "Creates a new user",
@@ -99,7 +98,7 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 	},
 }
 
-// userGetCmd represents the user get subcommand
+// userGetCmd represents the `user get` subcommand
 var userGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Retrieves a specified user",
@@ -127,10 +126,32 @@ usability.`,
 	},
 }
 
+// TODO: userUpdateCmd
+
+// TODO: userDeleteCmd
+
+var userListCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "Retrieves a list of all users",
+	Long:    `Retrieves a list of all users.`,
+	Aliases: []string{"ls"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		json, err := impl.UserList(api.getUsers)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(json))
+
+		return nil
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(userCmd)
 	userCmd.AddCommand(userCreateCmd)
 	userCmd.AddCommand(userGetCmd)
+	userCmd.AddCommand(userListCmd)
 
 	// Here you will define your flags and configuration settings.
 
