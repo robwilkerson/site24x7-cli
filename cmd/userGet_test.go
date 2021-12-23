@@ -9,18 +9,18 @@ import (
 )
 
 func Test_userGetFlags_validate(t *testing.T) {
-	type fields struct {
+	type flags struct {
 		id           string
 		emailAddress string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
+		flags   flags
 		wantErr bool
 	}{
 		{
 			name: "All flag values are empty",
-			fields: fields{
+			flags: flags{
 				id:           "",
 				emailAddress: "",
 			},
@@ -28,7 +28,7 @@ func Test_userGetFlags_validate(t *testing.T) {
 		},
 		{
 			name: "Only an id value was passed",
-			fields: fields{
+			flags: flags{
 				id:           "1001001SOS",
 				emailAddress: "",
 			},
@@ -36,7 +36,7 @@ func Test_userGetFlags_validate(t *testing.T) {
 		},
 		{
 			name: "Only an email address value was passed",
-			fields: fields{
+			flags: flags{
 				id:           "",
 				emailAddress: "fred@flintstone.com",
 			},
@@ -44,7 +44,7 @@ func Test_userGetFlags_validate(t *testing.T) {
 		},
 		{
 			name: "Both an id and an email address were passed",
-			fields: fields{
+			flags: flags{
 				id:           "1001001SOS",
 				emailAddress: "fred@flintstone.com",
 			},
@@ -54,8 +54,8 @@ func Test_userGetFlags_validate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			f := &userGetFlags{
-				id:           tt.fields.id,
-				emailAddress: tt.fields.emailAddress,
+				id:           tt.flags.id,
+				emailAddress: tt.flags.emailAddress,
 			}
 			if err := f.validate(); (err != nil) != tt.wantErr {
 				t.Errorf("userGetFlags.validate() error = %v, wantErr %v", err, tt.wantErr)

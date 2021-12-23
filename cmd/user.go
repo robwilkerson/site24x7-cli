@@ -17,14 +17,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"site24x7/api"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
-
-// func NewUserCmd(f flags, u User, g getter)
 
 // userCmd represents the user command
 var userCmd = &cobra.Command{
@@ -42,21 +38,18 @@ var userCmd = &cobra.Command{
 }
 
 // userCreateCmd represents the user create subcommand
-// TODO: Provide better links for CLI constants
 // TODO: Add flags for remaining data points that can be sent
-// TODO: Validate all flag values? Perhaps error if an invalid value was
-// explicitly passed?
 var userCreateCmd = &cobra.Command{
 	Use:   "create <email address>",
 	Short: "Creates a new user",
 	Long: `Creates a new user.
 
-Valid roles: https://github.com/robwilkerson/site24x7-cli/blob/main/api/user.go
-Valid Status IQ roles: https://github.com/robwilkerson/site24x7-cli/blob/main/api/user.go
-Valid Cloudspend roles: https://github.com/robwilkerson/site24x7-cli/blob/main/api/user.go
-Valid job titles: https://github.com/robwilkerson/site24x7-cli/blob/main/api/user.go
-User notification methods: https://github.com/robwilkerson/site24x7-cli/blob/main/api/user.go
-Valid email formats: https://github.com/robwilkerson/site24x7-cli/blob/main/api/user.go`,
+Valid roles: https://www.site24x7.com/help/api/#user_constants
+Valid Status IQ roles: https://www.site24x7.com/help/api/#user_constants
+Valid Cloudspend roles: https://www.site24x7.com/help/api/#user_constants
+Valid job titles: https://www.site24x7.com/help/api/#job_title
+User notification methods: https://www.site24x7.com/help/api/#alerting_constants
+Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 	Aliases: []string{"add", "new"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		expectedArgLen := 1
@@ -67,84 +60,34 @@ Valid email formats: https://github.com/robwilkerson/site24x7-cli/blob/main/api/
 
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		var preferredEmailFormat int
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var f userCreateFlags
+		// var preferredEmailFormat int
 
 		// Parse flag values
-		role, _ := cmd.Flags().GetString("role")
-		statusIQRole, _ := cmd.Flags().GetString("statusiq-role")
-		cloudspendRole, _ := cmd.Flags().GetString("cloudspend-role")
-		notifyBy, _ := cmd.Flags().GetStringSlice("notify-by")
-		alertEmailFormat, _ := cmd.Flags().GetString("alert-email-format")
-		alertSkipDays, _ := cmd.Flags().GetIntSlice("alert-skip-days")
-		alertStartTime, _ := cmd.Flags().GetString("alert-start-time")
-		alertEndTime, _ := cmd.Flags().GetString("alert-end-time")
-		alertMethodsDown, _ := cmd.Flags().GetStringSlice("alert-methods-down")
-		alertMethodsTrouble, _ := cmd.Flags().GetStringSlice("alert-methods-trouble")
-		alertMethodsUp, _ := cmd.Flags().GetStringSlice("alert-methods-up")
-		alertMethodsAppLogs, _ := cmd.Flags().GetStringSlice("alert-methods-applogs")
-		alertMethodsAnomaly, _ := cmd.Flags().GetStringSlice("alert-methods-anomaly")
-		jobTitle, _ := cmd.Flags().GetString("job-title")
+		f.name, _ = cmd.Flags().GetString("name")
+		f.role, _ = cmd.Flags().GetInt("role")
+		f.notifyMethod, _ = cmd.Flags().GetIntSlice("notify-by")
+		f.statusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
+		f.cloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
+		f.alertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
+		f.alertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
+		f.alertStartTime, _ = cmd.Flags().GetString("alert-start-time")
+		f.alertEndTime, _ = cmd.Flags().GetString("alert-end-time")
+		f.alertMethodsDown, _ = cmd.Flags().GetIntSlice("alert-methods-down")
+		f.alertMethodsTrouble, _ = cmd.Flags().GetIntSlice("alert-methods-trouble")
+		f.alertMethodsUp, _ = cmd.Flags().GetIntSlice("alert-methods-up")
+		f.alertMethodsAppLogs, _ = cmd.Flags().GetIntSlice("alert-methods-applogs")
+		f.alertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
+		f.jobTitle, _ = cmd.Flags().GetInt("job-title")
 
-		// Hydrate a user object with passed values or reasonable defaults
-		// Required inputs
+		// Do all of the work in a testable custom function
 		u := api.User{EmailAddress: args[0]}
-		u.Name, _ = cmd.Flags().GetString("name")
-		if v, ok := api.UserRoles[strings.ToUpper(role)]; ok {
-			u.Role = v
-		} else {
-			// If the user explicitly passes an invalid role, error
-			fmt.Printf("ERROR: Invalid role (%s)\n", role)
-			cmd.Help()
-			os.Exit(1)
+		if err := userCreate(f, &u, u.Create); err != nil {
+			return err
 		}
 
-		// Optional inputs
-		// These all have sensible defaults; if the user explicitly passes an
-		// invalid value, we'll just let the API tell us we're wrong so we can
-		// keep the code itself reasonably tidy. There's a lot of values here
-		// so checking them all is a bit of a chore. May revisit this later.
-		if u.NotifyMedium = lookupIds(notifyBy, api.UserNotifyMediums); u.NotifyMedium == nil {
-			// At least 1 value was passed, but none were valid
-			fmt.Println("ERROR: At least one notification method was passed, but none were valid")
-			cmd.Help()
-			os.Exit(1)
-		}
-		if statusIQRole != "" {
-			// If a value was explicitly passed, error if it doesn't exist
-			if v, ok := api.UserStatusIQRoles[strings.ToUpper(statusIQRole)]; ok {
-				u.StatusIQRole = v
-			}
-		}
-		if cloudspendRole != "" {
-			// If a value was explicitly passed, error if it doesn't exist
-			if v, ok := api.UserCloudspendRoles[strings.ToUpper(cloudspendRole)]; ok {
-				u.CloudspendRole = v
-			}
-		}
-		if v, ok := api.UserEmailFormats[alertEmailFormat]; ok {
-			preferredEmailFormat = v
-		}
-		u.AlertSettings = map[string]interface{}{
-			"email_format":       preferredEmailFormat,
-			"dont_alert_on_days": alertSkipDays,
-			"alerting_period": map[string]string{
-				"start_time": alertStartTime,
-				"end_time":   alertEndTime,
-			},
-			"down":    lookupIds(alertMethodsDown, api.UserNotifyMediums),
-			"trouble": lookupIds(alertMethodsTrouble, api.UserNotifyMediums),
-			"up":      lookupIds(alertMethodsUp, api.UserNotifyMediums),
-			"applogs": lookupIds(alertMethodsAppLogs, api.UserNotifyMediums),
-			"anomaly": lookupIds(alertMethodsAnomaly, api.UserNotifyMediums),
-		}
-		if v, ok := api.UserJobTitles[strings.ToLower(jobTitle)]; ok {
-			u.JobTitle = v
-		}
-
-		if err := u.Create(); err != nil {
-			fmt.Println(err)
-		}
+		return nil
 	},
 }
 
@@ -191,26 +134,26 @@ func init() {
 	// is called directly, e.g.:
 	// userCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	// Flags for the create command
+	// Flags for the user create command
 	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
-	userCreateCmd.Flags().StringP("role", "r", "noaccess", "Role assigned to the user for Site24x7 access (--help for valid options)")
-	userCreateCmd.Flags().StringSliceP("notify-by", "N", []string{"email"}, "Medium by which the user will receive alerts")
-	userCreateCmd.Flags().String("statusiq-role", "", "Role assigned to the user for accessing StatusIQ")
-	userCreateCmd.Flags().String("cloudspend-role", "", "Role assigned to the user for accessing CloudSpend")
+	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
+	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
+	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
+	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
 	userCreateCmd.Flags().StringSliceP("groups", "g", []string{}, "List of group identifiers to which the user should be assigned for receiving alerts")
 	userCreateCmd.Flags().String("alert-email-format", "html", "Email format for alert emails")
 	userCreateCmd.Flags().IntSlice("alert-skip-days", []int{}, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
 	userCreateCmd.Flags().String("alert-start-time", "00:00", "The time of day when the user should start receiving alerts")
 	userCreateCmd.Flags().String("alert-end-time", "00:00", "The time of day when the user should stop receiving alerts")
-	userCreateCmd.Flags().StringSlice("alert-methods-down", []string{"email"}, "Preferred notification methods for down alerts")
-	userCreateCmd.Flags().StringSlice("alert-methods-trouble", []string{"email"}, "Preferred notification methods for trouble alerts")
-	userCreateCmd.Flags().StringSlice("alert-methods-up", []string{"email"}, "Preferred notification methods when service is restored")
-	userCreateCmd.Flags().StringSlice("alert-methods-applogs", []string{"email"}, "Preferred notification methods for alerts related to application logs")
-	userCreateCmd.Flags().StringSlice("alert-methods-anomaly", []string{"email"}, "Preferred notification methods for alerts when an anomaly is detected")
-	userCreateCmd.Flags().String("job-title", "it", "Job title of the user")
+	userCreateCmd.Flags().IntSlice("alert-methods-down", []int{1}, "Preferred notification methods for down alerts")
+	userCreateCmd.Flags().IntSlice("alert-methods-trouble", []int{1}, "Preferred notification methods for trouble alerts")
+	userCreateCmd.Flags().IntSlice("alert-methods-up", []int{1}, "Preferred notification methods when service is restored")
+	userCreateCmd.Flags().IntSlice("alert-methods-applogs", []int{1}, "Preferred notification methods for alerts related to application logs")
+	userCreateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
+	userCreateCmd.Flags().Int("job-title", 0, "Job title of the user")
 	// TODO: Add flags for additional data points
 
-	// Flags for the get command
+	// Flags for the user get command
 	userGetCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userGetCmd.Flags().StringP("email", "e", "", "A user email address")
 }

@@ -55,6 +55,10 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	}
 	req.Header = r.Headers
 
+	// TODO: add a flag for dumping http requests?
+	// dump, _ := httputil.DumpRequestOut(req, true)
+	// fmt.Printf("%q\n", dump)
+
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("[Token.Fetch] ERROR: unable to execute request (%s)", err)
@@ -86,6 +90,10 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 
 	// Apply common headers
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
+
+	// TODO: add a flag for dumping http requests?
+	// dump, _ := httputil.DumpRequestOut(req, true)
+	// fmt.Printf("%q\n", dump)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

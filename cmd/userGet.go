@@ -6,7 +6,7 @@ import (
 	"site24x7/api"
 )
 
-// flags contains the value of any flag sent to the command
+// userGetFlags contains the value of any flag sent to the command
 type userGetFlags struct {
 	id           string
 	emailAddress string

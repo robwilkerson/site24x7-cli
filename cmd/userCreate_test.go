@@ -1,0 +1,453 @@
+//
+// Implementation and supporting functions for the `user create` subcommand.
+//
+package cmd
+
+import (
+	"fmt"
+	"reflect"
+	"site24x7/api"
+	"strings"
+	"testing"
+)
+
+func Test_lookupIds(t *testing.T) {
+	type args struct {
+		list   []int
+		lookup map[int]string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []int
+	}{
+		{
+			name: "Key exists",
+			args: args{
+				[]int{1},
+				map[int]string{
+					0: "a",
+					1: "b",
+				},
+			},
+			want: []int{1},
+		},
+		{
+			name: "Key doesn't exist",
+			args: args{
+				[]int{5},
+				map[int]string{0: "a", 1: "b", 2: "c"},
+			},
+			want: nil,
+		},
+		{
+			name: "Multiple keys exist",
+			args: args{
+				[]int{1, 3, 11, 49, 10},
+				map[int]string{
+					0:  "a",
+					1:  "b",
+					2:  "c",
+					3:  "d",
+					10: "x",
+					11: "7",
+				},
+			},
+			want: []int{1, 3, 11, 10},
+		},
+		{
+			name: "No keys exist",
+			args: args{
+				[]int{33, 18, 41, 9},
+				map[int]string{
+					0:  "a",
+					1:  "b",
+					2:  "c",
+					3:  "d",
+					10: "x",
+					11: "y",
+				},
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := lookupIds(tt.args.list, tt.args.lookup); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("lookupIds() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_userCreateFlags_validate(t *testing.T) {
+	type fields struct {
+		role                int
+		notifyMethod        []int
+		statusIQRole        int
+		cloudSpendRole      int
+		alertEmailFormat    int
+		alertSkipDays       []int
+		alertMethodsDown    []int
+		alertMethodsTrouble []int
+		alertMethodsUp      []int
+		alertMethodsAppLogs []int
+		alertMethodsAnomaly []int
+		jobTitle            int
+	}
+	// defaultFlags sets the default value for only those flags that are
+	// validated; the "name" flag, for example, is not validated and is not
+	// represented in this stuct.
+	defaultFlags := fields{
+		role:                0,
+		notifyMethod:        []int{1},
+		statusIQRole:        0,
+		cloudSpendRole:      0,
+		alertEmailFormat:    1,
+		alertSkipDays:       []int{},
+		alertMethodsDown:    []int{1},
+		alertMethodsTrouble: []int{1},
+		alertMethodsUp:      []int{1},
+		alertMethodsAppLogs: []int{1},
+		alertMethodsAnomaly: []int{1},
+		jobTitle:            0,
+	}
+
+	// various invalid flag states
+	invalidRoleFlag := defaultFlags
+	invalidRoleFlag.role = 45
+	invalidNotificationMethods := defaultFlags
+	invalidNotificationMethods.notifyMethod = []int{100, 1001}
+	invalidStatusIQRole := defaultFlags
+	invalidStatusIQRole.statusIQRole = 23902
+	invalidCloudSpendRole := defaultFlags
+	invalidCloudSpendRole.cloudSpendRole = 329
+	invalidAlertEmailFormat := defaultFlags
+	invalidAlertEmailFormat.alertEmailFormat = 5
+	invalidAlertSkipDaysLongWeek := defaultFlags
+	invalidAlertSkipDaysLongWeek.alertSkipDays = []int{9, 4, 8, 3, 21, 47, 12, 1}
+	invalidAlertSkipDaysLessThanZero := defaultFlags
+	invalidAlertSkipDaysLessThanZero.alertSkipDays = []int{4, 1, -1}
+	invalidAlertSkipDaysGreaterThanSix := defaultFlags
+	invalidAlertSkipDaysGreaterThanSix.alertSkipDays = []int{1, 7}
+	invalidAlertDownNotification := defaultFlags
+	invalidAlertDownNotification.alertMethodsDown = []int{-1, 500}
+	invalidAlertTroubleNotification := defaultFlags
+	invalidAlertTroubleNotification.alertMethodsTrouble = []int{-1, 500}
+	invalidAlertUpNotification := defaultFlags
+	invalidAlertUpNotification.alertMethodsUp = []int{500}
+	invalidAlertAppLogsNotification := defaultFlags
+	invalidAlertAppLogsNotification.alertMethodsAppLogs = []int{239}
+	invalidAlertAnomalyNotification := defaultFlags
+	invalidAlertAnomalyNotification.alertMethodsAnomaly = []int{19}
+	invalidJobTitle := defaultFlags
+	invalidJobTitle.jobTitle = 10
+
+	tests := []struct {
+		name       string
+		fields     fields
+		wantErr    bool
+		wantErrMsg string
+	}{
+		{
+			name:       "Default flag values are valid",
+			fields:     defaultFlags,
+			wantErr:    false,
+			wantErrMsg: "",
+		},
+		{
+			name:       "An unsupported role throws an error",
+			fields:     invalidRoleFlag,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid role",
+		},
+		{
+			name:       "No valid notification methods were passed",
+			fields:     invalidNotificationMethods,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid notification method(s)",
+		},
+		{
+			name:       "An unempty, unsupported status IQ role is invalid",
+			fields:     invalidStatusIQRole,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid status IQ role",
+		},
+		{
+			name:       "An unempty, unsupported cloudspend role is invalid",
+			fields:     invalidCloudSpendRole,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid cloudspend role",
+		},
+		{
+			name:       "An unsupported email format throws an error",
+			fields:     invalidAlertEmailFormat,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid email format",
+		},
+		{
+			name:       "More skip days than days in a week throws an error",
+			fields:     invalidAlertSkipDaysLongWeek,
+			wantErr:    true,
+			wantErrMsg: "ERROR: There are 7 days in a week",
+		},
+		{
+			name:       "Any skip days value < 0 throws an error",
+			fields:     invalidAlertSkipDaysLessThanZero,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid skip days identified",
+		},
+		{
+			name:       "Any skip days value > 6 throws an error",
+			fields:     invalidAlertSkipDaysGreaterThanSix,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid skip days identified",
+		},
+		{
+			name:       "No valid DOWN notification methods were passed",
+			fields:     invalidAlertDownNotification,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid DOWN alert notification method(s)",
+		},
+		{
+			name:       "No valid TROUBLE notification methods were passed",
+			fields:     invalidAlertTroubleNotification,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid TROUBLE alert notification method(s)",
+		},
+		{
+			name:       "No valid UP notification methods were passed",
+			fields:     invalidAlertUpNotification,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid UP alert notification method(s)",
+		},
+		{
+			name:       "No valid APPLOGS notification methods were passed",
+			fields:     invalidAlertAppLogsNotification,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid APPLOGS alert notification method(s)",
+		},
+		{
+			name:       "No valid ANOMALY notification methods were passed",
+			fields:     invalidAlertAnomalyNotification,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid ANOMALY alert notification method(s)",
+		},
+		{
+			name:       "An invalid job title throws an error",
+			fields:     invalidJobTitle,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid job title",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := userCreateFlags{
+				role:                tt.fields.role,
+				notifyMethod:        tt.fields.notifyMethod,
+				statusIQRole:        tt.fields.statusIQRole,
+				cloudSpendRole:      tt.fields.cloudSpendRole,
+				alertEmailFormat:    tt.fields.alertEmailFormat,
+				alertSkipDays:       tt.fields.alertSkipDays,
+				alertMethodsDown:    tt.fields.alertMethodsDown,
+				alertMethodsTrouble: tt.fields.alertMethodsTrouble,
+				alertMethodsUp:      tt.fields.alertMethodsUp,
+				alertMethodsAppLogs: tt.fields.alertMethodsAppLogs,
+				alertMethodsAnomaly: tt.fields.alertMethodsAnomaly,
+				jobTitle:            tt.fields.jobTitle,
+			}
+			err := f.validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("userCreateFlags.validate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !strings.HasPrefix(err.Error(), tt.wantErrMsg) {
+				t.Errorf("userCreateFlags.validate() error msg = %s, wantErrMsg = %s", err.Error(), tt.wantErrMsg)
+			}
+		})
+	}
+}
+
+func Test_userCreate(t *testing.T) {
+	type args struct {
+		f       userCreateFlags
+		u       *api.User
+		creator func() error
+	}
+	defaultFlags := userCreateFlags{
+		name:                "Unnamed User",
+		role:                0,
+		notifyMethod:        []int{1},
+		statusIQRole:        0,
+		cloudSpendRole:      0,
+		alertEmailFormat:    1,
+		alertSkipDays:       []int{},
+		alertStartTime:      "00:00",
+		alertEndTime:        "00:00",
+		alertMethodsDown:    []int{1},
+		alertMethodsTrouble: []int{1},
+		alertMethodsUp:      []int{1},
+		alertMethodsAppLogs: []int{1},
+		alertMethodsAnomaly: []int{1},
+		jobTitle:            0,
+	}
+	mockInvalidFlagset := defaultFlags
+	mockInvalidFlagset.role = -1
+	mockFlagsetWithStatusIQRole := defaultFlags
+	mockFlagsetWithStatusIQRole.statusIQRole = 25
+	mockFlagsetWithCloudspendRole := defaultFlags
+	mockFlagsetWithCloudspendRole.cloudSpendRole = 12
+	// A mock user as it would exist entering the creator function
+	mockEntryUser := &api.User{EmailAddress: "super@man.com"}
+	// A mock user as it would get updated if no flag values were explicitly
+	// passed
+	mockHydratedDefaultUser := &api.User{
+		Name:               "Unnamed User",
+		EmailAddress:       "super@man.com",
+		Role:               0,
+		NotificationMethod: []int{1},
+		AlertSettings: map[string]interface{}{
+			"email_format":       1,
+			"dont_alert_on_days": []int{},
+			"alerting_period": map[string]string{
+				"start_time": "00:00",
+				"end_time":   "00:00",
+			},
+			"down":    []int{1},
+			"trouble": []int{1},
+			"up":      []int{1},
+			"applogs": []int{1},
+			"anomaly": []int{1},
+		},
+		JobTitle: 0,
+	}
+	// A hydrated mock user where a non-empty, non-default statusiq-role flag
+	// value has been passed
+	mockHydratedUserWithCustomStatusIQRole := &api.User{
+		Name:               "Unnamed User",
+		EmailAddress:       "super@man.com",
+		Role:               0,
+		NotificationMethod: []int{1},
+		AlertSettings: map[string]interface{}{
+			"email_format":       1,
+			"dont_alert_on_days": []int{},
+			"alerting_period": map[string]string{
+				"start_time": "00:00",
+				"end_time":   "00:00",
+			},
+			"down":    []int{1},
+			"trouble": []int{1},
+			"up":      []int{1},
+			"applogs": []int{1},
+			"anomaly": []int{1},
+		},
+		JobTitle:     0,
+		StatusIQRole: 25,
+	}
+	// A hydrated mock user where a non-empty, non-default cloudspend-role flag
+	// value has been passed
+	mockHydratedUserWithCustomCloudspendRole := &api.User{
+		Name:               "Unnamed User",
+		EmailAddress:       "super@man.com",
+		Role:               0,
+		NotificationMethod: []int{1},
+		AlertSettings: map[string]interface{}{
+			"email_format":       1,
+			"dont_alert_on_days": []int{},
+			"alerting_period": map[string]string{
+				"start_time": "00:00",
+				"end_time":   "00:00",
+			},
+			"down":    []int{1},
+			"trouble": []int{1},
+			"up":      []int{1},
+			"applogs": []int{1},
+			"anomaly": []int{1},
+		},
+		JobTitle:       0,
+		CloudspendRole: 12,
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantUser   *api.User
+		wantErr    bool
+		wantErrMsg string
+	}{
+		{
+			name: "Rethrows a flag validation error",
+			args: args{
+				f: mockInvalidFlagset,
+				u: mockEntryUser,
+				creator: func() error {
+					return nil
+				},
+			},
+			wantUser:   mockEntryUser,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid role",
+		},
+		{
+			name: "Hydrates the passed user object with default values",
+			args: args{
+				f: defaultFlags,
+				u: mockEntryUser,
+				creator: func() error {
+					return nil
+				},
+			},
+			wantUser: mockHydratedDefaultUser,
+			wantErr:  false,
+		},
+		{
+			name: "Rethrows an error returned from the creator function",
+			args: args{
+				f: defaultFlags,
+				u: mockEntryUser,
+				creator: func() error {
+					return fmt.Errorf("Whoops!")
+				},
+			},
+			wantUser:   mockHydratedDefaultUser,
+			wantErr:    true,
+			wantErrMsg: "Whoops!",
+		},
+		{
+			name: "Sets the StatusIQ role if a valid, non-default value is passed",
+			args: args{
+				f: mockFlagsetWithStatusIQRole,
+				u: mockEntryUser,
+				creator: func() error {
+					return nil
+				},
+			},
+			wantUser: mockHydratedUserWithCustomStatusIQRole,
+			wantErr:  false,
+		},
+		{
+			name: "Sets the Cloudspend role if a valid, non-default value is passed",
+			args: args{
+				f: mockFlagsetWithCloudspendRole,
+				u: mockEntryUser,
+				creator: func() error {
+					return nil
+				},
+			},
+			wantUser: mockHydratedUserWithCustomCloudspendRole,
+			wantErr:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := userCreate(tt.args.f, tt.args.u, tt.args.creator)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("userCreate() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if err != nil && !strings.HasPrefix(err.Error(), tt.wantErrMsg) {
+				t.Errorf("userCreateFlags.validate() error msg = %s, wantErrMsg = %s", err.Error(), tt.wantErrMsg)
+			}
+			if tt.wantUser != nil && !reflect.DeepEqual(tt.args.u, tt.wantUser) {
+				t.Errorf("userCreate() = %+v, want %+v", tt.args.u, tt.wantUser)
+			}
+		})
+	}
+}
