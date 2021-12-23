@@ -236,3 +236,33 @@ func (u *User) Get() error {
 
 	return nil
 }
+
+// TODO: func (u *User) Update() error {}
+
+func (u *User) Delete() error {
+	// If an email address is sent, convert that to an id
+	if u.EmailAddress != "" {
+		if err := u.findUserByEmail(); err != nil {
+			return err
+		}
+	}
+
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), u.Id),
+		Method:   "DELETE",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return err
+	}
+	if res.Message != "success" {
+		return fmt.Errorf("[User.Delete] API Response error; %s", res.Message)
+	}
+
+	return nil
+}

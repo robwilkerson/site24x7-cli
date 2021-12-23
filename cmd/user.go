@@ -107,7 +107,7 @@ var userGetCmd = &cobra.Command{
 The Site24x7 API only supports retrieval by their ID, but this CLI will also
 support retrieval by email address, albeit less efficient, for improved
 usability.`,
-	Aliases: []string{"fetch", "retrieve"},
+	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var f impl.UserGetFlags
 		f.Id, _ = cmd.Flags().GetString("id")
@@ -129,7 +129,34 @@ usability.`,
 // TODO: userUpdateCmd
 
 // TODO: userDeleteCmd
+var userDeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Deletes a specified user",
+	Long: `Deletes a specified user.
 
+The Site24x7 API only supports removal by user ID, but this CLI will also
+support retrieval by email address, albeit less efficient, for improved
+usability.`,
+	Aliases: []string{"del", "rm", "remove"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		var f impl.UserDeleteFlags
+		f.Id, _ = cmd.Flags().GetString("id")
+		f.EmailAddress, _ = cmd.Flags().GetString("email")
+
+		// Do all of the work in a testable custom function
+		u := api.User{}
+		err := impl.UserDelete(f, &u, u.Delete)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("User successfully deleted!")
+
+		return nil
+	},
+}
+
+// userGetCmd represents the `user get` subcommand
 var userListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "Retrieves a list of all users",
@@ -151,6 +178,7 @@ func init() {
 	rootCmd.AddCommand(userCmd)
 	userCmd.AddCommand(userCreateCmd)
 	userCmd.AddCommand(userGetCmd)
+	userCmd.AddCommand(userDeleteCmd)
 	userCmd.AddCommand(userListCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -163,7 +191,7 @@ func init() {
 	// is called directly, e.g.:
 	// userCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	// Flags for the user create command
+	// Flags for the `user create` command
 	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
 	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
 	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
@@ -187,9 +215,14 @@ func init() {
 	userCreateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
 	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
 	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
-	// TODO: Add flags for additional data points
 
-	// Flags for the user get command
+	// Flags for the `user get` command
 	userGetCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userGetCmd.Flags().StringP("email", "e", "", "A user email address")
+
+	// Flags for the `user update` command
+
+	// Flags for the `user delete` command
+	userDeleteCmd.Flags().StringP("id", "i", "", "A user identifier")
+	userDeleteCmd.Flags().StringP("email", "e", "", "A user email address")
 }
