@@ -82,6 +82,10 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 		f.AlertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
 		f.JobTitle, _ = cmd.Flags().GetInt("job-title")
 		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("groups")
+		f.MobileCountryCode, _ = cmd.Flags().GetString("mobile-country-code")
+		f.MobileNumber, _ = cmd.Flags().GetString("mobile-phone-number")
+		f.MobileSMSProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
+		f.MobileCallProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
 
 		// Do all of the work in a testable custom function
 		u := api.User{EmailAddress: args[0]}
@@ -153,6 +157,10 @@ func init() {
 	userCreateCmd.Flags().IntSlice("alert-methods-applogs", []int{1}, "Preferred notification methods for alerts related to application logs")
 	userCreateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
 	userCreateCmd.Flags().Int("job-title", 0, "Job title of the user")
+	userCreateCmd.Flags().String("mobile-country-code", "", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
+	userCreateCmd.Flags().String("mobile-phone-number", "", "Digits only; required if voice and/or sms notifications are requested")
+	userCreateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
+	userCreateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
 	// TODO: Add flags for additional data points
 
 	// Flags for the user get command

@@ -319,6 +319,12 @@ func Test_userCreate(t *testing.T) {
 			"anomaly": []int{1},
 		},
 		JobTitle: 0,
+		MobileSettings: map[string]interface{}{
+			"call_provider_id": 0,
+			"country_code":     "",
+			"mobile_number":    "",
+			"sms_provider_id":  0,
+		},
 	}
 	// A hydrated mock user where a non-empty, non-default statusiq-role flag
 	// value has been passed
@@ -342,6 +348,12 @@ func Test_userCreate(t *testing.T) {
 		},
 		JobTitle:     0,
 		StatusIQRole: 25,
+		MobileSettings: map[string]interface{}{
+			"call_provider_id": 0,
+			"country_code":     "",
+			"mobile_number":    "",
+			"sms_provider_id":  0,
+		},
 	}
 	// A hydrated mock user where a non-empty, non-default cloudspend-role flag
 	// value has been passed
@@ -363,7 +375,13 @@ func Test_userCreate(t *testing.T) {
 			"applogs": []int{1},
 			"anomaly": []int{1},
 		},
-		JobTitle:       0,
+		JobTitle: 0,
+		MobileSettings: map[string]interface{}{
+			"call_provider_id": 0,
+			"country_code":     "",
+			"mobile_number":    "",
+			"sms_provider_id":  0,
+		},
 		CloudspendRole: 12,
 	}
 	tests := []struct {

@@ -11,22 +11,26 @@ import (
 
 // userCreateFlags contains the value of any flag sent to the command
 type UserCreateFlags struct {
-	Name                string // not validated locally
-	Role                int
-	NotifyMethod        []int
-	StatusIQRole        int
-	CloudSpendRole      int
-	AlertEmailFormat    int
-	AlertSkipDays       []int
-	AlertStartTime      string // not validated locally
-	AlertEndTime        string // not validated locally
-	AlertMethodsDown    []int
-	AlertMethodsTrouble []int
-	AlertMethodsUp      []int
-	AlertMethodsAppLogs []int
-	AlertMethodsAnomaly []int
-	JobTitle            int
-	MonitorGroups       []string
+	Name                 string // not validated locally
+	Role                 int
+	NotifyMethod         []int
+	StatusIQRole         int
+	CloudSpendRole       int
+	AlertEmailFormat     int
+	AlertSkipDays        []int
+	AlertStartTime       string // not validated locally
+	AlertEndTime         string // not validated locally
+	AlertMethodsDown     []int
+	AlertMethodsTrouble  []int
+	AlertMethodsUp       []int
+	AlertMethodsAppLogs  []int
+	AlertMethodsAnomaly  []int
+	JobTitle             int
+	MonitorGroups        []string
+	MobileCountryCode    string
+	MobileNumber         string
+	MobileSMSProviderID  int
+	MobileCallProviderID int
 }
 
 // lookupIds checks a list of key values against a map and returns a slice
@@ -44,6 +48,8 @@ func lookupIds(keys []int, lookup map[int]string) []int {
 }
 
 // validate validates data passed to the command via flags
+// QUESTION: How much validation do we want to do here vs letting the API
+//           just return an error response?
 func (f UserCreateFlags) validate() error {
 	if _, ok := api.UserRoleLookup[f.Role]; !ok {
 		return fmt.Errorf("ERROR: Invalid role (%d)", f.Role)
@@ -101,6 +107,12 @@ func (f UserCreateFlags) validate() error {
 		}
 	}
 
+	// NOTE: There some business logic aspects that we _could_ validate, but
+	// that feels like a pretty dark road. For example, in order to select a
+	// text or voice call notification method, mobile settings must be sent.
+	// going to punt on that kind of thing and just focus on validating actual
+	// input values.
+
 	return nil
 }
 
@@ -127,6 +139,12 @@ func UserCreate(f UserCreateFlags, u *api.User, creator func() error) error {
 		"up":      lookupIds(f.AlertMethodsUp, api.UserNotificationMethods),
 		"applogs": lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
 		"anomaly": lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
+	}
+	u.MobileSettings = map[string]interface{}{
+		"country_code":     f.MobileCountryCode,
+		"mobile_number":    f.MobileNumber,
+		"sms_provider_id":  f.MobileSMSProviderID,
+		"call_provider_id": f.MobileCallProviderID,
 	}
 	u.StatusIQRole = f.StatusIQRole
 	u.CloudspendRole = f.CloudSpendRole

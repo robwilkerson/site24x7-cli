@@ -171,6 +171,7 @@ func (u *User) Create() error {
 		"notify_medium":   u.NotificationMethod,
 		"alert_settings":  u.AlertSettings,
 		"job_title":       u.JobTitle,
+		"mobile_settings": u.MobileSettings,
 	})
 	// TODO: apply a verbose context for debug/info output?
 	// fmt.Println(string(data))
