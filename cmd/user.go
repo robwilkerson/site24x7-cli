@@ -136,7 +136,7 @@ var userListCmd = &cobra.Command{
 	Long:    `Retrieves a list of all users.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		json, err := impl.UserList(api.getUsers)
+		json, err := impl.UserList(api.GetUsers)
 		if err != nil {
 			return err
 		}

@@ -90,8 +90,27 @@ type User struct {
 	Zuid               string                 `json:"zuid"`
 }
 
+// findByEmail returns a user found with a matching email address
+func (u *User) findUserByEmail() error {
+	users, err := GetUsers()
+	if err != nil {
+		return err
+	}
+
+	for _, usr := range users {
+		if strings.EqualFold(usr.EmailAddress, u.EmailAddress) {
+			// Update the receiver with the official, fully hydrated user
+			*u = usr
+
+			return nil
+		}
+	}
+
+	return &NotFoundError{fmt.Sprintf("[User.findByEmail] NOTFOUNDERROR: No user with that email (%s) found", u.EmailAddress)}
+}
+
 // getUsers returns all users on the account.
-func getUsers() ([]User, error) {
+func GetUsers() ([]User, error) {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
 		Method:   "GET",
@@ -117,7 +136,7 @@ func getUsers() ([]User, error) {
 // UserExists determines whether a given user, identified by email address,
 // already exists in the Site24x7 account.
 func UserExists(email string) (bool, error) {
-	users, err := getUsers()
+	users, err := GetUsers()
 	if err != nil {
 		return false, err
 	}
@@ -129,25 +148,6 @@ func UserExists(email string) (bool, error) {
 	}
 
 	return false, nil
-}
-
-// findByEmail returns a user found with a matching email address
-func (u *User) findUserByEmail() error {
-	users, err := getUsers()
-	if err != nil {
-		return err
-	}
-
-	for _, usr := range users {
-		if strings.EqualFold(usr.EmailAddress, u.EmailAddress) {
-			// Update the receiver with the official, fully hydrated user
-			*u = usr
-
-			return nil
-		}
-	}
-
-	return &NotFoundError{fmt.Sprintf("[User.findByEmail] NOTFOUNDERROR: No user with that email (%s) found", u.EmailAddress)}
 }
 
 // Create creates a new Site24x7 user and hydrates a pointer
