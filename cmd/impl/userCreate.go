@@ -9,7 +9,7 @@ import (
 	"site24x7/api"
 )
 
-// userCreateFlags contains the value of any flag sent to the command
+// UserCreateFlags contains the value of any flag sent to the command
 type UserCreateFlags struct {
 	Name                 string // not validated locally
 	Role                 int
@@ -117,7 +117,7 @@ func (f UserCreateFlags) validate() error {
 	return nil
 }
 
-// userGet is the testable implementation code for userCreateCmd
+// UserGet is the testable implementation code for cmd.userCreateCmd
 func UserCreate(f UserCreateFlags, u *api.User, creator func() error) error {
 	if err := f.validate(); err != nil {
 		return err

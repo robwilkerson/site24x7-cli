@@ -10,7 +10,7 @@ import (
 	"site24x7/api"
 )
 
-// userGetFlags contains the value of any flag sent to the command
+// UserGetFlags contains the value of any flag sent to the command
 type UserGetFlags struct {
 	Id           string
 	EmailAddress string
@@ -27,7 +27,7 @@ func (f UserGetFlags) validate() error {
 	return nil
 }
 
-// userGet is the testable implementation code for userGetCmd
+// UserGet is the testable implementation code for cmd.userGetCmd
 func UserGet(f UserGetFlags, u *api.User, getter func() error) ([]byte, error) {
 	if err := f.validate(); err != nil {
 		return nil, err

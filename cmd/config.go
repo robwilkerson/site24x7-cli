@@ -34,13 +34,14 @@ var configCmd = &cobra.Command{
 Requests and stores authentication details that are required to access the
 Site24x7 API for a given account. This data is stored in a config file located
 at $HOME/<username>/.site24x7.yaml.`,
-	Aliases: []string{"configure"},
-	PreRun: func(cmd *cobra.Command, args []string) {
+	Aliases: []string{"configure", "cfg"},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 		updateRefreshTokenOnly, _ := cmd.Flags().GetBool("refresh-token")
 
 		// If a config file already exists, verify that the user wants to
 		// overwrite that file (or a given item in it).
 
+		// TODO: Move work to impl package and test
 		var overwrite string
 
 		if f := viper.ConfigFileUsed(); f != "" {
@@ -53,13 +54,15 @@ at $HOME/<username>/.site24x7.yaml.`,
 
 			if strings.ToUpper(overwrite) != "Y" {
 				fmt.Println("No changes were made; exiting.")
-				os.Exit(0)
 			}
 		}
+
+		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		updateRefreshTokenOnly, _ := cmd.Flags().GetBool("refresh-token")
 
+		// TODO: Move work to impl package and test
 		var clientID string
 		var clientSecret string
 		var grantToken string
@@ -84,15 +87,15 @@ at $HOME/<username>/.site24x7.yaml.`,
 
 		if grantToken == "" {
 			fmt.Printf("No grant token provided; nothing to do\n")
-			os.Exit(0)
+
+			return nil
 		}
 
 		// Exchange the grant token for a refresh token
 		refreshToken, err := api.Configure(grantToken)
 		if err != nil {
 			fmt.Println("Unable to exchange the grant token provided for a refresh token.")
-			fmt.Printf("%s\n", err)
-			os.Exit(1)
+			return fmt.Errorf("%s", err)
 		}
 
 		// Write the information provided to the Cobra config file
@@ -102,11 +105,12 @@ at $HOME/<username>/.site24x7.yaml.`,
 		}
 		viper.Set("auth.refresh_token", refreshToken)
 		if err = viper.WriteConfig(); err != nil {
-			fmt.Printf("Error completing configuration")
-			os.Exit(1)
+			return fmt.Errorf("unable to complete configuration (%s)", err)
 		}
 
 		fmt.Println("Configuration complete!")
+
+		return nil
 	},
 }
 
