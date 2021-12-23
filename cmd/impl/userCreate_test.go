@@ -1,7 +1,7 @@
 //
 // Implementation and supporting functions for the `user create` subcommand.
 //
-package cmd
+package impl
 
 import (
 	"fmt"
@@ -242,19 +242,19 @@ func Test_userCreateFlags_validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := userCreateFlags{
-				role:                tt.fields.role,
-				notifyMethod:        tt.fields.notifyMethod,
-				statusIQRole:        tt.fields.statusIQRole,
-				cloudSpendRole:      tt.fields.cloudSpendRole,
-				alertEmailFormat:    tt.fields.alertEmailFormat,
-				alertSkipDays:       tt.fields.alertSkipDays,
-				alertMethodsDown:    tt.fields.alertMethodsDown,
-				alertMethodsTrouble: tt.fields.alertMethodsTrouble,
-				alertMethodsUp:      tt.fields.alertMethodsUp,
-				alertMethodsAppLogs: tt.fields.alertMethodsAppLogs,
-				alertMethodsAnomaly: tt.fields.alertMethodsAnomaly,
-				jobTitle:            tt.fields.jobTitle,
+			f := UserCreateFlags{
+				Role:                tt.fields.role,
+				NotifyMethod:        tt.fields.notifyMethod,
+				StatusIQRole:        tt.fields.statusIQRole,
+				CloudSpendRole:      tt.fields.cloudSpendRole,
+				AlertEmailFormat:    tt.fields.alertEmailFormat,
+				AlertSkipDays:       tt.fields.alertSkipDays,
+				AlertMethodsDown:    tt.fields.alertMethodsDown,
+				AlertMethodsTrouble: tt.fields.alertMethodsTrouble,
+				AlertMethodsUp:      tt.fields.alertMethodsUp,
+				AlertMethodsAppLogs: tt.fields.alertMethodsAppLogs,
+				AlertMethodsAnomaly: tt.fields.alertMethodsAnomaly,
+				JobTitle:            tt.fields.jobTitle,
 			}
 			err := f.validate()
 			if (err != nil) != tt.wantErr {
@@ -269,33 +269,33 @@ func Test_userCreateFlags_validate(t *testing.T) {
 
 func Test_userCreate(t *testing.T) {
 	type args struct {
-		f       userCreateFlags
+		f       UserCreateFlags
 		u       *api.User
 		creator func() error
 	}
-	defaultFlags := userCreateFlags{
-		name:                "Unnamed User",
-		role:                0,
-		notifyMethod:        []int{1},
-		statusIQRole:        0,
-		cloudSpendRole:      0,
-		alertEmailFormat:    1,
-		alertSkipDays:       []int{},
-		alertStartTime:      "00:00",
-		alertEndTime:        "00:00",
-		alertMethodsDown:    []int{1},
-		alertMethodsTrouble: []int{1},
-		alertMethodsUp:      []int{1},
-		alertMethodsAppLogs: []int{1},
-		alertMethodsAnomaly: []int{1},
-		jobTitle:            0,
+	defaultFlags := UserCreateFlags{
+		Name:                "Unnamed User",
+		Role:                0,
+		NotifyMethod:        []int{1},
+		StatusIQRole:        0,
+		CloudSpendRole:      0,
+		AlertEmailFormat:    1,
+		AlertSkipDays:       []int{},
+		AlertStartTime:      "00:00",
+		AlertEndTime:        "00:00",
+		AlertMethodsDown:    []int{1},
+		AlertMethodsTrouble: []int{1},
+		AlertMethodsUp:      []int{1},
+		AlertMethodsAppLogs: []int{1},
+		AlertMethodsAnomaly: []int{1},
+		JobTitle:            0,
 	}
 	mockInvalidFlagset := defaultFlags
-	mockInvalidFlagset.role = -1
+	mockInvalidFlagset.Role = -1
 	mockFlagsetWithStatusIQRole := defaultFlags
-	mockFlagsetWithStatusIQRole.statusIQRole = 25
+	mockFlagsetWithStatusIQRole.StatusIQRole = 25
 	mockFlagsetWithCloudspendRole := defaultFlags
-	mockFlagsetWithCloudspendRole.cloudSpendRole = 12
+	mockFlagsetWithCloudspendRole.CloudSpendRole = 12
 	// A mock user as it would exist entering the creator function
 	mockEntryUser := &api.User{EmailAddress: "super@man.com"}
 	// A mock user as it would get updated if no flag values were explicitly
@@ -438,7 +438,7 @@ func Test_userCreate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := userCreate(tt.args.f, tt.args.u, tt.args.creator)
+			err := UserCreate(tt.args.f, tt.args.u, tt.args.creator)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("userCreate() error = %v, wantErr %v", err, tt.wantErr)
 			}

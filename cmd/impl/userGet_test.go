@@ -1,4 +1,4 @@
-package cmd
+package impl
 
 import (
 	"encoding/json"
@@ -53,9 +53,9 @@ func Test_userGetFlags_validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &userGetFlags{
-				id:           tt.flags.id,
-				emailAddress: tt.flags.emailAddress,
+			f := &UserGetFlags{
+				Id:           tt.flags.id,
+				EmailAddress: tt.flags.emailAddress,
 			}
 			if err := f.validate(); (err != nil) != tt.wantErr {
 				t.Errorf("userGetFlags.validate() error = %v, wantErr %v", err, tt.wantErr)
@@ -66,7 +66,7 @@ func Test_userGetFlags_validate(t *testing.T) {
 
 func Test_userGet(t *testing.T) {
 	type args struct {
-		f      userGetFlags
+		f      UserGetFlags
 		u      *api.User
 		getter func() error
 	}
@@ -83,7 +83,7 @@ func Test_userGet(t *testing.T) {
 		{
 			name: "Rethrows an invalid flag error",
 			args: args{
-				f: userGetFlags{id: "", emailAddress: ""},
+				f: UserGetFlags{Id: "", EmailAddress: ""},
 				u: &api.User{},
 				getter: func() error {
 					return nil
@@ -96,7 +96,7 @@ func Test_userGet(t *testing.T) {
 		{
 			name: "Handles an error thrown by the getter",
 			args: args{
-				f: userGetFlags{id: "1001001SOS", emailAddress: ""},
+				f: UserGetFlags{Id: "1001001SOS", EmailAddress: ""},
 				u: &api.User{},
 				getter: func() error {
 					return fmt.Errorf("Whoops!")
@@ -109,7 +109,7 @@ func Test_userGet(t *testing.T) {
 		{
 			name: "Returns no error",
 			args: args{
-				f: userGetFlags{id: "1001001SOS", emailAddress: ""},
+				f: UserGetFlags{Id: "1001001SOS", EmailAddress: ""},
 				u: mockUserIn,
 				getter: func() error {
 					return nil
@@ -121,7 +121,7 @@ func Test_userGet(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := userGet(tt.args.f, tt.args.u, tt.args.getter)
+			got, err := UserGet(tt.args.f, tt.args.u, tt.args.getter)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("userGet() error = %v, wantErr %v", err, tt.wantErr)
 				return

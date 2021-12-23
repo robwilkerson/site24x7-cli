@@ -1,4 +1,8 @@
-package cmd
+//
+// Implementation and supporting functions for the `user get` subcommand.
+// Implementation functions make the code more testable
+//
+package impl
 
 import (
 	"encoding/json"
@@ -7,16 +11,16 @@ import (
 )
 
 // userGetFlags contains the value of any flag sent to the command
-type userGetFlags struct {
-	id           string
-	emailAddress string
+type UserGetFlags struct {
+	Id           string
+	EmailAddress string
 }
 
 // validate validates user data passed to the get command
-func (f userGetFlags) validate() error {
-	if f.id != "" && f.emailAddress != "" {
+func (f UserGetFlags) validate() error {
+	if f.Id != "" && f.EmailAddress != "" {
 		return fmt.Errorf("please include either an ID OR an email address, not both")
-	} else if f.id == "" && f.emailAddress == "" {
+	} else if f.Id == "" && f.EmailAddress == "" {
 		return fmt.Errorf("either an ID or an email address is required to retrieve a user")
 	}
 
@@ -24,14 +28,14 @@ func (f userGetFlags) validate() error {
 }
 
 // userGet is the testable implementation code for userGetCmd
-func userGet(f userGetFlags, u *api.User, getter func() error) ([]byte, error) {
+func UserGet(f UserGetFlags, u *api.User, getter func() error) ([]byte, error) {
 	if err := f.validate(); err != nil {
 		return nil, err
 	}
 
 	// Hydrate the user with known values
-	u.Id = f.id
-	u.EmailAddress = f.emailAddress
+	u.Id = f.Id
+	u.EmailAddress = f.EmailAddress
 
 	if err := getter(); err != nil {
 		return nil, err

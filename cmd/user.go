@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"site24x7/api"
+	"site24x7/cmd/impl"
 
 	"github.com/spf13/cobra"
 )
@@ -61,29 +62,30 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f userCreateFlags
+		var f impl.UserCreateFlags
 		// var preferredEmailFormat int
 
 		// Parse flag values
-		f.name, _ = cmd.Flags().GetString("name")
-		f.role, _ = cmd.Flags().GetInt("role")
-		f.notifyMethod, _ = cmd.Flags().GetIntSlice("notify-by")
-		f.statusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
-		f.cloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
-		f.alertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
-		f.alertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
-		f.alertStartTime, _ = cmd.Flags().GetString("alert-start-time")
-		f.alertEndTime, _ = cmd.Flags().GetString("alert-end-time")
-		f.alertMethodsDown, _ = cmd.Flags().GetIntSlice("alert-methods-down")
-		f.alertMethodsTrouble, _ = cmd.Flags().GetIntSlice("alert-methods-trouble")
-		f.alertMethodsUp, _ = cmd.Flags().GetIntSlice("alert-methods-up")
-		f.alertMethodsAppLogs, _ = cmd.Flags().GetIntSlice("alert-methods-applogs")
-		f.alertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
-		f.jobTitle, _ = cmd.Flags().GetInt("job-title")
+		f.Name, _ = cmd.Flags().GetString("name")
+		f.Role, _ = cmd.Flags().GetInt("role")
+		f.NotifyMethod, _ = cmd.Flags().GetIntSlice("notify-by")
+		f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
+		f.CloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
+		f.AlertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
+		f.AlertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
+		f.AlertStartTime, _ = cmd.Flags().GetString("alert-start-time")
+		f.AlertEndTime, _ = cmd.Flags().GetString("alert-end-time")
+		f.AlertMethodsDown, _ = cmd.Flags().GetIntSlice("alert-methods-down")
+		f.AlertMethodsTrouble, _ = cmd.Flags().GetIntSlice("alert-methods-trouble")
+		f.AlertMethodsUp, _ = cmd.Flags().GetIntSlice("alert-methods-up")
+		f.AlertMethodsAppLogs, _ = cmd.Flags().GetIntSlice("alert-methods-applogs")
+		f.AlertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
+		f.JobTitle, _ = cmd.Flags().GetInt("job-title")
+		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("groups")
 
 		// Do all of the work in a testable custom function
 		u := api.User{EmailAddress: args[0]}
-		if err := userCreate(f, &u, u.Create); err != nil {
+		if err := impl.UserCreate(f, &u, u.Create); err != nil {
 			return err
 		}
 
@@ -102,13 +104,13 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f userGetFlags
-		f.id, _ = cmd.Flags().GetString("id")
-		f.emailAddress, _ = cmd.Flags().GetString("email")
+		var f impl.UserGetFlags
+		f.Id, _ = cmd.Flags().GetString("id")
+		f.EmailAddress, _ = cmd.Flags().GetString("email")
 
 		// Do all of the work in a testable custom function
 		u := api.User{}
-		json, err := userGet(f, &u, u.Get)
+		json, err := impl.UserGet(f, &u, u.Get)
 		if err != nil {
 			return err
 		}
@@ -140,7 +142,7 @@ func init() {
 	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
 	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
 	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
-	userCreateCmd.Flags().StringSliceP("groups", "g", []string{}, "List of group identifiers to which the user should be assigned for receiving alerts")
+	userCreateCmd.Flags().StringSliceP("groups", "g", []string{}, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
 	userCreateCmd.Flags().String("alert-email-format", "html", "Email format for alert emails")
 	userCreateCmd.Flags().IntSlice("alert-skip-days", []int{}, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
 	userCreateCmd.Flags().String("alert-start-time", "00:00", "The time of day when the user should start receiving alerts")
