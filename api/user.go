@@ -162,17 +162,29 @@ func (u *User) Create() error {
 	}
 
 	// TODO: include optional data from flags
-	data, _ := json.Marshal(map[string]interface{}{
+	data := map[string]interface{}{
 		"display_name":    u.Name,
 		"email_address":   u.EmailAddress,
 		"user_role":       u.Role,
-		"statusiq_role":   u.StatusIQRole,
-		"cloudspend_role": u.CloudspendRole,
 		"notify_medium":   u.NotificationMethod,
 		"alert_settings":  u.AlertSettings,
 		"job_title":       u.JobTitle,
 		"mobile_settings": u.MobileSettings,
-	})
+	}
+
+	// 0 is the default status iq and cloudspend role, but it's not a valid
+	// role for either and the call will error if sent as such. Only send them
+	// if the user entered a non-default value.
+
+	if u.StatusIQRole != 0 {
+		data["statusiq_role"] = u.StatusIQRole
+	}
+	if u.CloudspendRole != 0 {
+		data["cloudspend_role"] = u.CloudspendRole
+	}
+
+	body, _ := json.Marshal(data)
+
 	// TODO: apply a verbose context for debug/info output?
 	// fmt.Println(string(data))
 
@@ -182,7 +194,7 @@ func (u *User) Create() error {
 		Headers: http.Header{
 			"Accept": {"application/json; version=2.0"},
 		},
-		Body: data,
+		Body: body,
 	}
 	req.Headers.Set(httpHeader())
 	res, err := req.Fetch()
@@ -239,6 +251,7 @@ func (u *User) Get() error {
 
 // TODO: func (u *User) Update() error {}
 
+// Delete removes a user from the account
 func (u *User) Delete() error {
 	// If an email address is sent, convert that to an id
 	if u.EmailAddress != "" {
