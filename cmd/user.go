@@ -69,8 +69,7 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 		f.Name, _ = cmd.Flags().GetString("name")
 		f.Role, _ = cmd.Flags().GetInt("role")
 		f.NotifyMethod, _ = cmd.Flags().GetIntSlice("notify-by")
-		f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
-		f.CloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
+		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("monitor-groups")
 		f.AlertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
 		f.AlertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
 		f.AlertStartTime, _ = cmd.Flags().GetString("alert-start-time")
@@ -82,10 +81,13 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 		f.AlertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
 		f.JobTitle, _ = cmd.Flags().GetInt("job-title")
 		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("groups")
+		f.NonEUAlertConsent, _ = cmd.Flags().GetBool("non-eu-alert-consent")
 		f.MobileCountryCode, _ = cmd.Flags().GetString("mobile-country-code")
 		f.MobileNumber, _ = cmd.Flags().GetString("mobile-phone-number")
 		f.MobileSMSProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
 		f.MobileCallProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
+		f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
+		f.CloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
 
 		// Do all of the work in a testable custom function
 		u := api.User{EmailAddress: args[0]}
@@ -144,9 +146,7 @@ func init() {
 	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
 	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
 	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
-	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
-	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
-	userCreateCmd.Flags().StringSliceP("groups", "g", []string{}, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
+	userCreateCmd.Flags().StringSliceP("monitor-groups", "g", []string{}, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
 	userCreateCmd.Flags().String("alert-email-format", "html", "Email format for alert emails")
 	userCreateCmd.Flags().IntSlice("alert-skip-days", []int{}, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
 	userCreateCmd.Flags().String("alert-start-time", "00:00", "The time of day when the user should start receiving alerts")
@@ -157,10 +157,15 @@ func init() {
 	userCreateCmd.Flags().IntSlice("alert-methods-applogs", []int{1}, "Preferred notification methods for alerts related to application logs")
 	userCreateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
 	userCreateCmd.Flags().Int("job-title", 0, "Job title of the user")
+	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
+	// userCreateCmd.Flags().Int("selection-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
+
 	userCreateCmd.Flags().String("mobile-country-code", "", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
 	userCreateCmd.Flags().String("mobile-phone-number", "", "Digits only; required if voice and/or sms notifications are requested")
 	userCreateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
 	userCreateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
+	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
+	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
 	// TODO: Add flags for additional data points
 
 	// Flags for the user get command

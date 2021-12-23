@@ -78,7 +78,7 @@ type User struct {
 	SelectionType      int                    `json:"selection_type"`
 	IsAccountContact   bool                   `json:"is_account_contact"`
 	AlertSettings      map[string]interface{} `json:"alert_settings"`
-	UserGroups         []string               `json:"user_groups"`
+	MonitorGroups      []string               `json:"user_groups"`
 	IsInvited          bool                   `json:"is_invited"`
 	ImSettings         map[string]interface{} `json:"im_settings"`
 	NotificationMethod []int                  `json:"notify_medium"`

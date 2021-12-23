@@ -14,8 +14,8 @@ type UserCreateFlags struct {
 	Name                 string // not validated locally
 	Role                 int
 	NotifyMethod         []int
-	StatusIQRole         int
-	CloudSpendRole       int
+	MonitorGroups        []string
+	NonEUAlertConsent    bool
 	AlertEmailFormat     int
 	AlertSkipDays        []int
 	AlertStartTime       string // not validated locally
@@ -26,11 +26,12 @@ type UserCreateFlags struct {
 	AlertMethodsAppLogs  []int
 	AlertMethodsAnomaly  []int
 	JobTitle             int
-	MonitorGroups        []string
 	MobileCountryCode    string
 	MobileNumber         string
 	MobileSMSProviderID  int
 	MobileCallProviderID int
+	StatusIQRole         int
+	CloudSpendRole       int
 }
 
 // lookupIds checks a list of key values against a map and returns a slice
@@ -47,9 +48,9 @@ func lookupIds(keys []int, lookup map[int]string) []int {
 	return result
 }
 
-// validate validates data passed to the command via flags
-// QUESTION: How much validation do we want to do here vs letting the API
-//           just return an error response?
+// validate validates data passed to the command via flags. This method only
+// validates the input value itself, not its use or usability within the context
+// of the overall upstream system.
 func (f UserCreateFlags) validate() error {
 	if _, ok := api.UserRoleLookup[f.Role]; !ok {
 		return fmt.Errorf("ERROR: Invalid role (%d)", f.Role)
@@ -126,6 +127,7 @@ func UserCreate(f UserCreateFlags, u *api.User, creator func() error) error {
 	u.Name = f.Name
 	u.Role = f.Role
 	u.NotificationMethod = f.NotifyMethod
+	u.MonitorGroups = f.MonitorGroups
 	u.JobTitle = f.JobTitle
 	u.AlertSettings = map[string]interface{}{
 		"email_format":       f.AlertEmailFormat,
