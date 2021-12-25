@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-func TestUserDeleteFlags_validate(t *testing.T) {
+func TestUserAccessorFlags_validate(t *testing.T) {
 	type flags struct {
 		Id           string
 		EmailAddress string
@@ -59,16 +59,16 @@ func TestUserDeleteFlags_validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := UserDeleteFlags{
-				Id:           tt.flags.Id,
+			f := UserAccessorFlags{
+				ID:           tt.flags.Id,
 				EmailAddress: tt.flags.EmailAddress,
 			}
 			err := f.validate()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("userDeleteFlags.validate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UserAccessorFlags.validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && !strings.HasPrefix(err.Error(), tt.wantErrMsg) {
-				t.Errorf("UserDeleteFlags.validate() error = %v, wantErr %v", err.Error(), tt.wantErrMsg)
+				t.Errorf("UserAccessorFlags.validate() error = %v, wantErr %v", err.Error(), tt.wantErrMsg)
 			}
 		})
 	}
@@ -76,7 +76,7 @@ func TestUserDeleteFlags_validate(t *testing.T) {
 
 func TestUserDelete(t *testing.T) {
 	type args struct {
-		f       UserDeleteFlags
+		f       UserAccessorFlags
 		u       *api.User
 		deleter func() error
 	}
@@ -89,7 +89,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			name: "Rethrows a flag validation error",
 			args: args{
-				f: UserDeleteFlags{Id: "", EmailAddress: ""},
+				f: UserAccessorFlags{ID: "", EmailAddress: ""},
 				u: &api.User{},
 				deleter: func() error {
 					return nil
@@ -101,7 +101,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			name: "Rethrows a user deleter error",
 			args: args{
-				f: UserDeleteFlags{Id: "1001001SOS"},
+				f: UserAccessorFlags{ID: "1001001SOS"},
 				u: &api.User{},
 				deleter: func() error {
 					return fmt.Errorf("Whoops!")
@@ -113,7 +113,7 @@ func TestUserDelete(t *testing.T) {
 		{
 			name: "Successfully deletes the user",
 			args: args{
-				f: UserDeleteFlags{Id: "1001001SOS"},
+				f: UserAccessorFlags{ID: "1001001SOS"},
 				u: &api.User{},
 				deleter: func() error {
 					return nil

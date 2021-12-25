@@ -80,7 +80,7 @@ func Test_lookupIds(t *testing.T) {
 	}
 }
 
-func Test_userCreateFlags_validate(t *testing.T) {
+func Test_UserWriterFlags_validate(t *testing.T) {
 	type fields struct {
 		role                int
 		notifyMethod        []int
@@ -242,7 +242,7 @@ func Test_userCreateFlags_validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := UserCreateFlags{
+			f := UserWriterFlags{
 				Role:                tt.fields.role,
 				NotifyMethod:        tt.fields.notifyMethod,
 				StatusIQRole:        tt.fields.statusIQRole,
@@ -258,10 +258,10 @@ func Test_userCreateFlags_validate(t *testing.T) {
 			}
 			err := f.validate()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("userCreateFlags.validate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("UserWriterFlags.validate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && !strings.HasPrefix(err.Error(), tt.wantErrMsg) {
-				t.Errorf("userCreateFlags.validate() error msg = %s, wantErrMsg = %s", err.Error(), tt.wantErrMsg)
+				t.Errorf("UserWriterFlags.validate() error msg = %s, wantErrMsg = %s", err.Error(), tt.wantErrMsg)
 			}
 		})
 	}
@@ -269,11 +269,11 @@ func Test_userCreateFlags_validate(t *testing.T) {
 
 func Test_userCreate(t *testing.T) {
 	type args struct {
-		f       UserCreateFlags
+		f       UserWriterFlags
 		u       *api.User
 		creator func() error
 	}
-	defaultFlags := UserCreateFlags{
+	defaultFlags := UserWriterFlags{
 		Name:                "Unnamed User",
 		Role:                0,
 		NotifyMethod:        []int{1},
@@ -461,7 +461,7 @@ func Test_userCreate(t *testing.T) {
 				t.Errorf("userCreate() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if err != nil && !strings.HasPrefix(err.Error(), tt.wantErrMsg) {
-				t.Errorf("userCreateFlags.validate() error msg = %s, wantErrMsg = %s", err.Error(), tt.wantErrMsg)
+				t.Errorf("UserWriterFlags.validate() error msg = %s, wantErrMsg = %s", err.Error(), tt.wantErrMsg)
 			}
 			if tt.wantUser != nil && !reflect.DeepEqual(tt.args.u, tt.wantUser) {
 				t.Errorf("userCreate() = %+v, want %+v", tt.args.u, tt.wantUser)

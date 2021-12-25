@@ -61,8 +61,7 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f impl.UserCreateFlags
-		// var preferredEmailFormat int
+		var f impl.UserWriterFlags
 
 		// Parse flag values
 		f.Name, _ = cmd.Flags().GetString("name")
@@ -109,8 +108,8 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f impl.UserGetFlags
-		f.Id, _ = cmd.Flags().GetString("id")
+		var f impl.UserAccessorFlags
+		f.ID, _ = cmd.Flags().GetString("id")
 		f.EmailAddress, _ = cmd.Flags().GetString("email")
 
 		// Do all of the work in a testable custom function
@@ -128,7 +127,7 @@ usability.`,
 
 // TODO: userUpdateCmd
 
-// TODO: userDeleteCmd
+// userDeleteCmd represents the `user delete` subcommand
 var userDeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Deletes a specified user",
@@ -139,8 +138,8 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"del", "rm", "remove"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f impl.UserDeleteFlags
-		f.Id, _ = cmd.Flags().GetString("id")
+		var f impl.UserAccessorFlags
+		f.ID, _ = cmd.Flags().GetString("id")
 		f.EmailAddress, _ = cmd.Flags().GetString("email")
 
 		// Do all of the work in a testable custom function

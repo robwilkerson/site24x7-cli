@@ -53,8 +53,8 @@ func Test_userGetFlags_validate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f := &UserGetFlags{
-				Id:           tt.flags.id,
+			f := &UserAccessorFlags{
+				ID:           tt.flags.id,
 				EmailAddress: tt.flags.emailAddress,
 			}
 			if err := f.validate(); (err != nil) != tt.wantErr {
@@ -66,7 +66,7 @@ func Test_userGetFlags_validate(t *testing.T) {
 
 func Test_userGet(t *testing.T) {
 	type args struct {
-		f      UserGetFlags
+		f      UserAccessorFlags
 		u      *api.User
 		getter func() error
 	}
@@ -83,7 +83,7 @@ func Test_userGet(t *testing.T) {
 		{
 			name: "Rethrows an invalid flag error",
 			args: args{
-				f: UserGetFlags{Id: "", EmailAddress: ""},
+				f: UserAccessorFlags{ID: "", EmailAddress: ""},
 				u: &api.User{},
 				getter: func() error {
 					return nil
@@ -96,7 +96,7 @@ func Test_userGet(t *testing.T) {
 		{
 			name: "Handles an error thrown by the getter",
 			args: args{
-				f: UserGetFlags{Id: "1001001SOS", EmailAddress: ""},
+				f: UserAccessorFlags{ID: "1001001SOS", EmailAddress: ""},
 				u: &api.User{},
 				getter: func() error {
 					return fmt.Errorf("Whoops!")
@@ -109,7 +109,7 @@ func Test_userGet(t *testing.T) {
 		{
 			name: "Returns no error",
 			args: args{
-				f: UserGetFlags{Id: "1001001SOS", EmailAddress: ""},
+				f: UserAccessorFlags{ID: "1001001SOS", EmailAddress: ""},
 				u: mockUserIn,
 				getter: func() error {
 					return nil
