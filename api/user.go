@@ -67,26 +67,36 @@ var UserJobTitles = map[int]string{
 	7: "Others",
 }
 
+// UserResourceTypes are the supported resource/selection types
+// https://www.site24x7.com/help/api/#resource_type_constants
+var UserResourceTypes = map[int]string{
+	0: "All Monitors",
+	1: "Monitor Group",
+	2: "Monitor",
+	3: "Tags",
+	4: "Monitor Type",
+}
+
 // User defines the user data returned by Site24x7's user endpoints
 type User struct {
 	Id                 string                 `json:"user_id"`
 	Name               string                 `json:"display_name"`
 	EmailAddress       string                 `json:"email_address"`
 	Role               int                    `json:"user_role"`
-	ImagePresent       bool                   `json:"image_present"`
-	TwitterSettings    map[string]interface{} `json:"twitter_settings"`
-	SelectionType      int                    `json:"selection_type"`
-	IsAccountContact   bool                   `json:"is_account_contact"`
+	JobTitle           int                    `json:"job_title"`
 	AlertSettings      map[string]interface{} `json:"alert_settings"`
 	MonitorGroups      []string               `json:"user_groups"`
-	IsInvited          bool                   `json:"is_invited"`
-	ImSettings         map[string]interface{} `json:"im_settings"`
 	NotificationMethod []int                  `json:"notify_medium"`
-	IsEditAllowed      bool                   `json:"is_edit_allowed"`
 	MobileSettings     map[string]interface{} `json:"mobile_settings"`
 	StatusIQRole       int                    `json:"statusiq_role"`
 	CloudspendRole     int                    `json:"cloudspend_role"`
-	JobTitle           int                    `json:"job_title"`
+	ResourceType       int                    `json:"selection_type"`
+	ImagePresent       bool                   `json:"image_present"`
+	TwitterSettings    map[string]interface{} `json:"twitter_settings"`
+	IsAccountContact   bool                   `json:"is_account_contact"`
+	IsInvited          bool                   `json:"is_invited"`
+	ImSettings         map[string]interface{} `json:"im_settings"`
+	IsEditAllowed      bool                   `json:"is_edit_allowed"`
 	Zuid               string                 `json:"zuid"`
 }
 

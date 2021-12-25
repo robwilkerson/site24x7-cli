@@ -22,7 +22,7 @@ func lookupIds(keys []int, lookup map[int]string) []int {
 	return result
 }
 
-// UserGet is the testable implementation code for cmd.userCreateCmd
+// UserCreate is the testable implementation code for cmd.userCreateCmd
 func UserCreate(f UserWriterFlags, u *api.User, creator func() error) error {
 	if err := f.validate(); err != nil {
 		return err

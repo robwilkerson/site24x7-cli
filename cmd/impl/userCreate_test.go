@@ -94,6 +94,7 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 		alertMethodsAppLogs []int
 		alertMethodsAnomaly []int
 		jobTitle            int
+		resourceType        int
 	}
 	// defaultFlags sets the default value for only those flags that are
 	// validated; the "name" flag, for example, is not validated and is not
@@ -111,6 +112,7 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 		alertMethodsAppLogs: []int{1},
 		alertMethodsAnomaly: []int{1},
 		jobTitle:            0,
+		resourceType:        0,
 	}
 
 	// various invalid flag states
@@ -142,6 +144,8 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 	invalidAlertAnomalyNotification.alertMethodsAnomaly = []int{19}
 	invalidJobTitle := defaultFlags
 	invalidJobTitle.jobTitle = 10
+	invalidResourceType := defaultFlags
+	invalidResourceType.resourceType = 10
 
 	tests := []struct {
 		name       string
@@ -239,6 +243,12 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 			wantErr:    true,
 			wantErrMsg: "ERROR: Invalid job title",
 		},
+		{
+			name:       "An invalid resource type thrown an error",
+			fields:     invalidResourceType,
+			wantErr:    true,
+			wantErrMsg: "ERROR: Invalid resource type",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -255,6 +265,7 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 				AlertMethodsAppLogs: tt.fields.alertMethodsAppLogs,
 				AlertMethodsAnomaly: tt.fields.alertMethodsAnomaly,
 				JobTitle:            tt.fields.jobTitle,
+				ResourceType:        tt.fields.resourceType,
 			}
 			err := f.validate()
 			if (err != nil) != tt.wantErr {
@@ -289,6 +300,7 @@ func Test_userCreate(t *testing.T) {
 		AlertMethodsAppLogs: []int{1},
 		AlertMethodsAnomaly: []int{1},
 		JobTitle:            0,
+		ResourceType:        0,
 	}
 	mockInvalidFlagset := defaultFlags
 	mockInvalidFlagset.Role = -1
@@ -325,6 +337,7 @@ func Test_userCreate(t *testing.T) {
 			"mobile_number":    "",
 			"sms_provider_id":  0,
 		},
+		ResourceType: 0,
 	}
 	// A hydrated mock user where a non-empty, non-default statusiq-role flag
 	// value has been passed

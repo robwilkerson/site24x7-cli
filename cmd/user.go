@@ -49,7 +49,8 @@ Valid Status IQ roles: https://www.site24x7.com/help/api/#user_constants
 Valid Cloudspend roles: https://www.site24x7.com/help/api/#user_constants
 Valid job titles: https://www.site24x7.com/help/api/#job_title
 User notification methods: https://www.site24x7.com/help/api/#alerting_constants
-Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
+Valid email formats: https://www.site24x7.com/help/api/#alerting_constants
+Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants`,
 	Aliases: []string{"add", "new"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		expectedArgLen := 1
@@ -79,11 +80,12 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants`,
 		f.AlertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
 		f.JobTitle, _ = cmd.Flags().GetInt("job-title")
 		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("groups")
-		f.NonEUAlertConsent, _ = cmd.Flags().GetBool("non-eu-alert-consent")
 		f.MobileCountryCode, _ = cmd.Flags().GetString("mobile-country-code")
 		f.MobileNumber, _ = cmd.Flags().GetString("mobile-phone-number")
 		f.MobileSMSProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
 		f.MobileCallProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
+		f.NonEUAlertConsent, _ = cmd.Flags().GetBool("non-eu-alert-consent")
+		f.ResourceType, _ = cmd.Flags().GetInt("resource-type")
 		f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
 		f.CloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
 
@@ -190,7 +192,12 @@ func init() {
 	// is called directly, e.g.:
 	// userCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	// Flags for the `user create` command
+	// 22 Flags for the `user create` command:
+	// 	 ->  10 "simple flags
+	//      + 9 alert settings
+	//      + 4 mobile settings
+	//      - 1 email address passed as an arg (no sensible default value)
+	// https://www.site24x7.com/help/api/#create-new-user
 	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
 	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
 	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
@@ -206,12 +213,11 @@ func init() {
 	userCreateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
 	userCreateCmd.Flags().Int("job-title", 0, "Job title of the user")
 	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
-	// userCreateCmd.Flags().Int("selection-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
-
 	userCreateCmd.Flags().String("mobile-country-code", "", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
 	userCreateCmd.Flags().String("mobile-phone-number", "", "Digits only; required if voice and/or sms notifications are requested")
 	userCreateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
 	userCreateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
+	userCreateCmd.Flags().Int("resource-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
 	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
 	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
 

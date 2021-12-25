@@ -23,7 +23,6 @@ type UserWriterFlags struct {
 	Role                 int
 	NotifyMethod         []int
 	MonitorGroups        []string
-	NonEUAlertConsent    bool
 	AlertEmailFormat     int
 	AlertSkipDays        []int
 	AlertStartTime       string // not validated locally
@@ -38,6 +37,8 @@ type UserWriterFlags struct {
 	MobileNumber         string
 	MobileSMSProviderID  int
 	MobileCallProviderID int
+	NonEUAlertConsent    bool
+	ResourceType         int
 	StatusIQRole         int
 	CloudSpendRole       int
 }
@@ -111,6 +112,9 @@ func (f UserWriterFlags) validate() error {
 		if _, ok := api.UserJobTitles[f.JobTitle]; !ok {
 			return fmt.Errorf("ERROR: Invalid job title (%d)", f.JobTitle)
 		}
+	}
+	if _, ok := api.UserResourceTypes[f.ResourceType]; !ok {
+		return fmt.Errorf("ERROR: Invalid resource type (%d)", f.ResourceType)
 	}
 
 	// NOTE: There some business logic aspects that we _could_ validate, but
