@@ -67,7 +67,7 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		// Parse flag values
 		f.Name, _ = cmd.Flags().GetString("name")
 		f.Role, _ = cmd.Flags().GetInt("role")
-		f.NotifyMethod, _ = cmd.Flags().GetIntSlice("notify-by")
+		f.NotificationMethods, _ = cmd.Flags().GetIntSlice("notify-by")
 		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("monitor-groups")
 		f.AlertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
 		f.AlertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
@@ -87,7 +87,7 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		f.NonEUAlertConsent, _ = cmd.Flags().GetBool("non-eu-alert-consent")
 		f.ResourceType, _ = cmd.Flags().GetInt("resource-type")
 		f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
-		f.CloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
+		f.CloudspendRole, _ = cmd.Flags().GetInt("cloudspend-role")
 
 		// Do all of the work in a testable custom function
 		u := api.User{EmailAddress: args[0]}
