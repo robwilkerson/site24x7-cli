@@ -83,9 +83,9 @@ func Test_lookupIds(t *testing.T) {
 func Test_UserWriterFlags_validate(t *testing.T) {
 	type fields struct {
 		role                int
-		notifyMethod        []int
+		notificationMethods []int
 		statusIQRole        int
-		cloudSpendRole      int
+		cloudspendRole      int
 		alertEmailFormat    int
 		alertSkipDays       []int
 		alertMethodsDown    []int
@@ -101,9 +101,9 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 	// represented in this stuct.
 	defaultFlags := fields{
 		role:                0,
-		notifyMethod:        []int{1},
+		notificationMethods: []int{1},
 		statusIQRole:        0,
-		cloudSpendRole:      0,
+		cloudspendRole:      0,
 		alertEmailFormat:    1,
 		alertSkipDays:       []int{},
 		alertMethodsDown:    []int{1},
@@ -119,11 +119,11 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 	invalidRoleFlag := defaultFlags
 	invalidRoleFlag.role = 45
 	invalidNotificationMethods := defaultFlags
-	invalidNotificationMethods.notifyMethod = []int{100, 1001}
+	invalidNotificationMethods.notificationMethods = []int{100, 1001}
 	invalidStatusIQRole := defaultFlags
 	invalidStatusIQRole.statusIQRole = 23902
-	invalidCloudSpendRole := defaultFlags
-	invalidCloudSpendRole.cloudSpendRole = 329
+	invalidCloudspendRole := defaultFlags
+	invalidCloudspendRole.cloudspendRole = 329
 	invalidAlertEmailFormat := defaultFlags
 	invalidAlertEmailFormat.alertEmailFormat = 5
 	invalidAlertSkipDaysLongWeek := defaultFlags
@@ -179,7 +179,7 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 		},
 		{
 			name:       "An unempty, unsupported cloudspend role is invalid",
-			fields:     invalidCloudSpendRole,
+			fields:     invalidCloudspendRole,
 			wantErr:    true,
 			wantErrMsg: "ERROR: Invalid cloudspend role",
 		},
@@ -254,9 +254,9 @@ func Test_UserWriterFlags_validate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			f := UserWriterFlags{
 				Role:                tt.fields.role,
-				NotifyMethod:        tt.fields.notifyMethod,
+				NotificationMethods: tt.fields.notificationMethods,
 				StatusIQRole:        tt.fields.statusIQRole,
-				CloudSpendRole:      tt.fields.cloudSpendRole,
+				CloudspendRole:      tt.fields.cloudspendRole,
 				AlertEmailFormat:    tt.fields.alertEmailFormat,
 				AlertSkipDays:       tt.fields.alertSkipDays,
 				AlertMethodsDown:    tt.fields.alertMethodsDown,
@@ -285,29 +285,33 @@ func Test_userCreate(t *testing.T) {
 		creator func() error
 	}
 	defaultFlags := UserWriterFlags{
-		Name:                "Unnamed User",
-		Role:                0,
-		NotifyMethod:        []int{1},
-		StatusIQRole:        0,
-		CloudSpendRole:      0,
-		AlertEmailFormat:    1,
-		AlertSkipDays:       []int{},
-		AlertStartTime:      "00:00",
-		AlertEndTime:        "00:00",
-		AlertMethodsDown:    []int{1},
-		AlertMethodsTrouble: []int{1},
-		AlertMethodsUp:      []int{1},
-		AlertMethodsAppLogs: []int{1},
-		AlertMethodsAnomaly: []int{1},
-		JobTitle:            0,
-		ResourceType:        0,
+		Name:                 "Unnamed User",
+		Role:                 0,
+		NotificationMethods:  []int{1},
+		StatusIQRole:         0,
+		CloudspendRole:       0,
+		AlertEmailFormat:     1,
+		AlertSkipDays:        []int{},
+		AlertStartTime:       "00:00",
+		AlertEndTime:         "00:00",
+		AlertMethodsDown:     []int{1},
+		AlertMethodsTrouble:  []int{1},
+		AlertMethodsUp:       []int{1},
+		AlertMethodsAppLogs:  []int{1},
+		AlertMethodsAnomaly:  []int{1},
+		JobTitle:             0,
+		ResourceType:         0,
+		MobileCountryCode:    "",
+		MobileNumber:         "",
+		MobileSMSProviderID:  0,
+		MobileCallProviderID: 0,
 	}
 	mockInvalidFlagset := defaultFlags
 	mockInvalidFlagset.Role = -1
 	mockFlagsetWithStatusIQRole := defaultFlags
 	mockFlagsetWithStatusIQRole.StatusIQRole = 25
 	mockFlagsetWithCloudspendRole := defaultFlags
-	mockFlagsetWithCloudspendRole.CloudSpendRole = 12
+	mockFlagsetWithCloudspendRole.CloudspendRole = 12
 
 	// A mock user as it would exist entering the creator function
 	defaultAlertMethods := []int{1}
@@ -324,57 +328,48 @@ func Test_userCreate(t *testing.T) {
 		AppLogsAlertMethods: defaultAlertMethods,
 		AnomalyAlertMethods: defaultAlertMethods,
 	}
+	defaultMobileSettings := api.UserMobileSettings{
+		CountryCode:    "",
+		Number:         "",
+		SMSProviderID:  0,
+		CallProviderID: 0,
+	}
 	mockEntryUser := &api.User{EmailAddress: "super@man.com"}
 	// A mock user as it would get updated if no flag values were explicitly
 	// passed
 	mockHydratedDefaultUser := &api.User{
-		Name:               "Unnamed User",
-		EmailAddress:       "super@man.com",
-		Role:               0,
-		NotificationMethod: []int{1},
-		AlertSettings:      defaultAlertSettings,
-		JobTitle:           0,
-		MobileSettings: map[string]interface{}{
-			"call_provider_id": 0,
-			"country_code":     "",
-			"mobile_number":    "",
-			"sms_provider_id":  0,
-		},
-		ResourceType: 0,
+		Name:                "Unnamed User",
+		EmailAddress:        "super@man.com",
+		Role:                0,
+		NotificationMethods: []int{1},
+		AlertSettings:       defaultAlertSettings,
+		JobTitle:            0,
+		MobileSettings:      defaultMobileSettings,
+		ResourceType:        0,
 	}
 	// A hydrated mock user where a non-empty, non-default statusiq-role flag
 	// value has been passed
 	mockHydratedUserWithCustomStatusIQRole := &api.User{
-		Name:               "Unnamed User",
-		EmailAddress:       "super@man.com",
-		Role:               0,
-		NotificationMethod: []int{1},
-		AlertSettings:      defaultAlertSettings,
-		JobTitle:           0,
-		StatusIQRole:       25,
-		MobileSettings: map[string]interface{}{
-			"call_provider_id": 0,
-			"country_code":     "",
-			"mobile_number":    "",
-			"sms_provider_id":  0,
-		},
+		Name:                "Unnamed User",
+		EmailAddress:        "super@man.com",
+		Role:                0,
+		NotificationMethods: []int{1},
+		AlertSettings:       defaultAlertSettings,
+		JobTitle:            0,
+		StatusIQRole:        25,
+		MobileSettings:      defaultMobileSettings,
 	}
 	// A hydrated mock user where a non-empty, non-default cloudspend-role flag
 	// value has been passed
 	mockHydratedUserWithCustomCloudspendRole := &api.User{
-		Name:               "Unnamed User",
-		EmailAddress:       "super@man.com",
-		Role:               0,
-		NotificationMethod: []int{1},
+		Name:                "Unnamed User",
+		EmailAddress:        "super@man.com",
+		Role:                0,
+		NotificationMethods: []int{1},
 
-		AlertSettings: defaultAlertSettings,
-		JobTitle:      0,
-		MobileSettings: map[string]interface{}{
-			"call_provider_id": 0,
-			"country_code":     "",
-			"mobile_number":    "",
-			"sms_provider_id":  0,
-		},
+		AlertSettings:  defaultAlertSettings,
+		JobTitle:       0,
+		MobileSettings: defaultMobileSettings,
 		CloudspendRole: 12,
 	}
 	tests := []struct {

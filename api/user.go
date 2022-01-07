@@ -77,11 +77,14 @@ var UserResourceTypes = map[int]string{
 	4: "Monitor Type",
 }
 
+// UserAlertPeriod sets the window of time during which alerts may be sent
+// to a user. Defaults to a 24 hour window: 00:00-00:00
 type UserAlertingPeriod struct {
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
 }
 
+// UserAlertSettings defines a set of alert preferences
 type UserAlertSettings struct {
 	EmailFormat         int                `json:"email_format"`
 	SkipDays            []int              `json:"dont_alert_on_days"`
@@ -93,27 +96,35 @@ type UserAlertSettings struct {
 	AnomalyAlertMethods []int              `json:"anomaly"`
 }
 
+// UserMobileSettings provides details for sending alerts to a mobile device
+type UserMobileSettings struct {
+	CountryCode    string `json:"country_code"`
+	Number         string `json:"mobile_number"`
+	SMSProviderID  int    `json:"sms_provider_id"`
+	CallProviderID int    `json:"call_provider_id"`
+}
+
 // User defines the user data returned by Site24x7's user endpoints
 type User struct {
-	Id                 string                 `json:"user_id"`
-	Name               string                 `json:"display_name"`
-	EmailAddress       string                 `json:"email_address"`
-	Role               int                    `json:"user_role"`
-	JobTitle           int                    `json:"job_title"`
-	AlertSettings      UserAlertSettings      `json:"alert_settings"`
-	MonitorGroups      []string               `json:"user_groups"`
-	NotificationMethod []int                  `json:"notify_medium"`
-	MobileSettings     map[string]interface{} `json:"mobile_settings"`
-	StatusIQRole       int                    `json:"statusiq_role"`
-	CloudspendRole     int                    `json:"cloudspend_role"`
-	ResourceType       int                    `json:"selection_type"`
-	ImagePresent       bool                   `json:"image_present"`
-	TwitterSettings    map[string]interface{} `json:"twitter_settings"`
-	IsAccountContact   bool                   `json:"is_account_contact"`
-	IsInvited          bool                   `json:"is_invited"`
-	ImSettings         map[string]interface{} `json:"im_settings"`
-	IsEditAllowed      bool                   `json:"is_edit_allowed"`
-	Zuid               string                 `json:"zuid"`
+	Id                  string                 `json:"user_id"`
+	Name                string                 `json:"display_name"`
+	EmailAddress        string                 `json:"email_address"`
+	Role                int                    `json:"user_role"`
+	JobTitle            int                    `json:"job_title"`
+	AlertSettings       UserAlertSettings      `json:"alert_settings"`
+	MonitorGroups       []string               `json:"user_groups"`
+	NotificationMethods []int                  `json:"notify_medium"`
+	MobileSettings      UserMobileSettings     `json:"mobile_settings"`
+	StatusIQRole        int                    `json:"statusiq_role"`
+	CloudspendRole      int                    `json:"cloudspend_role"`
+	ResourceType        int                    `json:"selection_type"`
+	ImagePresent        bool                   `json:"image_present"`
+	TwitterSettings     map[string]interface{} `json:"twitter_settings"`
+	IsAccountContact    bool                   `json:"is_account_contact"`
+	IsInvited           bool                   `json:"is_invited"`
+	ImSettings          map[string]interface{} `json:"im_settings"`
+	IsEditAllowed       bool                   `json:"is_edit_allowed"`
+	Zuid                string                 `json:"zuid"`
 }
 
 // findByEmail returns a user found with a matching email address
@@ -192,7 +203,7 @@ func (u *User) Create() error {
 		"display_name":    u.Name,
 		"email_address":   u.EmailAddress,
 		"user_role":       u.Role,
-		"notify_medium":   u.NotificationMethod,
+		"notify_medium":   u.NotificationMethods,
 		"alert_settings":  u.AlertSettings,
 		"job_title":       u.JobTitle,
 		"mobile_settings": u.MobileSettings,

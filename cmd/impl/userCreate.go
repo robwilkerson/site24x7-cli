@@ -31,7 +31,7 @@ func UserCreate(f UserWriterFlags, u *api.User, creator func() error) error {
 	// Hydrate the user with values now known to be valid
 	u.Name = f.Name
 	u.Role = f.Role
-	u.NotificationMethod = f.NotifyMethod
+	u.NotificationMethods = f.NotificationMethods
 	u.MonitorGroups = f.MonitorGroups
 	u.JobTitle = f.JobTitle
 	u.AlertSettings = api.UserAlertSettings{
@@ -47,14 +47,14 @@ func UserCreate(f UserWriterFlags, u *api.User, creator func() error) error {
 		AppLogsAlertMethods: lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
 		AnomalyAlertMethods: lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
 	}
-	u.MobileSettings = map[string]interface{}{
-		"country_code":     f.MobileCountryCode,
-		"mobile_number":    f.MobileNumber,
-		"sms_provider_id":  f.MobileSMSProviderID,
-		"call_provider_id": f.MobileCallProviderID,
+	u.MobileSettings = api.UserMobileSettings{
+		CountryCode:    f.MobileCountryCode,
+		Number:         f.MobileNumber,
+		SMSProviderID:  f.MobileSMSProviderID,
+		CallProviderID: f.MobileCallProviderID,
 	}
 	u.StatusIQRole = f.StatusIQRole
-	u.CloudspendRole = f.CloudSpendRole
+	u.CloudspendRole = f.CloudspendRole
 
 	if err := creator(); err != nil {
 		return err

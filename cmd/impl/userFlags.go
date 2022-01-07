@@ -21,7 +21,7 @@ type UserAccessorFlags struct {
 type UserWriterFlags struct {
 	Name                 string // not validated locally
 	Role                 int
-	NotifyMethod         []int
+	NotificationMethods  []int
 	MonitorGroups        []string
 	AlertEmailFormat     int
 	AlertSkipDays        []int
@@ -40,7 +40,7 @@ type UserWriterFlags struct {
 	NonEUAlertConsent    bool
 	ResourceType         int
 	StatusIQRole         int
-	CloudSpendRole       int
+	CloudspendRole       int
 }
 
 // validate validates user data passed to the `user delete` command
@@ -61,8 +61,8 @@ func (f UserWriterFlags) validate() error {
 	if _, ok := api.UserRoleLookup[f.Role]; !ok {
 		return fmt.Errorf("ERROR: Invalid role (%d)", f.Role)
 	}
-	if v := lookupIds(f.NotifyMethod, api.UserNotificationMethods); v == nil {
-		return fmt.Errorf("ERROR: Invalid notification method(s) (%v)", f.NotifyMethod)
+	if v := lookupIds(f.NotificationMethods, api.UserNotificationMethods); v == nil {
+		return fmt.Errorf("ERROR: Invalid notification method(s) (%v)", f.NotificationMethods)
 	}
 	// If a value was explicitly passed, error if it doesn't exist
 	// 0 is the default value, a nil value, and not a valid lookup key, so we
@@ -75,9 +75,9 @@ func (f UserWriterFlags) validate() error {
 	// If a value was explicitly passed, error if it doesn't exist
 	// 0 is the default value, a nil value, and not a valid lookup key, so we
 	// should just ignore it if a zero value comes in
-	if f.CloudSpendRole != 0 { // 0 is the nil value, but also not
-		if _, ok := api.UserCloudspendRoles[f.CloudSpendRole]; !ok {
-			return fmt.Errorf("ERROR: Invalid cloudspend role (%d)", f.CloudSpendRole)
+	if f.CloudspendRole != 0 { // 0 is the nil value, but also not
+		if _, ok := api.UserCloudspendRoles[f.CloudspendRole]; !ok {
+			return fmt.Errorf("ERROR: Invalid cloudspend role (%d)", f.CloudspendRole)
 		}
 	}
 	if _, ok := api.UserEmailFormats[f.AlertEmailFormat]; !ok {
