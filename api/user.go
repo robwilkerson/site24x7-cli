@@ -77,6 +77,22 @@ var UserResourceTypes = map[int]string{
 	4: "Monitor Type",
 }
 
+type UserAlertingPeriod struct {
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+}
+
+type UserAlertSettings struct {
+	EmailFormat         int                `json:"email_format"`
+	SkipDays            []int              `json:"dont_alert_on_days"`
+	AlertingPeriod      UserAlertingPeriod `json:"alerting_period"`
+	DownAlertMethods    []int              `json:"down"`
+	TroubleAlertMethods []int              `json:"trouble"`
+	UpAlertMethods      []int              `json:"up"`
+	AppLogsAlertMethods []int              `json:"applogs"`
+	AnomalyAlertMethods []int              `json:"anomaly"`
+}
+
 // User defines the user data returned by Site24x7's user endpoints
 type User struct {
 	Id                 string                 `json:"user_id"`
@@ -84,7 +100,7 @@ type User struct {
 	EmailAddress       string                 `json:"email_address"`
 	Role               int                    `json:"user_role"`
 	JobTitle           int                    `json:"job_title"`
-	AlertSettings      map[string]interface{} `json:"alert_settings"`
+	AlertSettings      UserAlertSettings      `json:"alert_settings"`
 	MonitorGroups      []string               `json:"user_groups"`
 	NotificationMethod []int                  `json:"notify_medium"`
 	MobileSettings     map[string]interface{} `json:"mobile_settings"`
