@@ -34,18 +34,18 @@ func UserCreate(f UserWriterFlags, u *api.User, creator func() error) error {
 	u.NotificationMethod = f.NotifyMethod
 	u.MonitorGroups = f.MonitorGroups
 	u.JobTitle = f.JobTitle
-	u.AlertSettings = map[string]interface{}{
-		"email_format":       f.AlertEmailFormat,
-		"dont_alert_on_days": f.AlertSkipDays,
-		"alerting_period": map[string]string{
-			"start_time": f.AlertStartTime,
-			"end_time":   f.AlertEndTime,
+	u.AlertSettings = api.UserAlertSettings{
+		EmailFormat: f.AlertEmailFormat,
+		SkipDays:    f.AlertSkipDays,
+		AlertingPeriod: api.UserAlertingPeriod{
+			StartTime: f.AlertStartTime,
+			EndTime:   f.AlertEndTime,
 		},
-		"down":    lookupIds(f.AlertMethodsDown, api.UserNotificationMethods),
-		"trouble": lookupIds(f.AlertMethodsTrouble, api.UserNotificationMethods),
-		"up":      lookupIds(f.AlertMethodsUp, api.UserNotificationMethods),
-		"applogs": lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
-		"anomaly": lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
+		DownAlertMethods:    lookupIds(f.AlertMethodsDown, api.UserNotificationMethods),
+		TroubleAlertMethods: lookupIds(f.AlertMethodsTrouble, api.UserNotificationMethods),
+		UpAlertMethods:      lookupIds(f.AlertMethodsUp, api.UserNotificationMethods),
+		AppLogsAlertMethods: lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
+		AnomalyAlertMethods: lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
 	}
 	u.MobileSettings = map[string]interface{}{
 		"country_code":     f.MobileCountryCode,

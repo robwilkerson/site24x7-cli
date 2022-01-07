@@ -308,7 +308,22 @@ func Test_userCreate(t *testing.T) {
 	mockFlagsetWithStatusIQRole.StatusIQRole = 25
 	mockFlagsetWithCloudspendRole := defaultFlags
 	mockFlagsetWithCloudspendRole.CloudSpendRole = 12
+
 	// A mock user as it would exist entering the creator function
+	defaultAlertMethods := []int{1}
+	defaultAlertSettings := api.UserAlertSettings{
+		EmailFormat: 1,
+		SkipDays:    []int{},
+		AlertingPeriod: api.UserAlertingPeriod{
+			StartTime: "00:00",
+			EndTime:   "00:00",
+		},
+		DownAlertMethods:    defaultAlertMethods,
+		TroubleAlertMethods: defaultAlertMethods,
+		UpAlertMethods:      defaultAlertMethods,
+		AppLogsAlertMethods: defaultAlertMethods,
+		AnomalyAlertMethods: defaultAlertMethods,
+	}
 	mockEntryUser := &api.User{EmailAddress: "super@man.com"}
 	// A mock user as it would get updated if no flag values were explicitly
 	// passed
@@ -317,20 +332,8 @@ func Test_userCreate(t *testing.T) {
 		EmailAddress:       "super@man.com",
 		Role:               0,
 		NotificationMethod: []int{1},
-		AlertSettings: map[string]interface{}{
-			"email_format":       1,
-			"dont_alert_on_days": []int{},
-			"alerting_period": map[string]string{
-				"start_time": "00:00",
-				"end_time":   "00:00",
-			},
-			"down":    []int{1},
-			"trouble": []int{1},
-			"up":      []int{1},
-			"applogs": []int{1},
-			"anomaly": []int{1},
-		},
-		JobTitle: 0,
+		AlertSettings:      defaultAlertSettings,
+		JobTitle:           0,
 		MobileSettings: map[string]interface{}{
 			"call_provider_id": 0,
 			"country_code":     "",
@@ -346,21 +349,9 @@ func Test_userCreate(t *testing.T) {
 		EmailAddress:       "super@man.com",
 		Role:               0,
 		NotificationMethod: []int{1},
-		AlertSettings: map[string]interface{}{
-			"email_format":       1,
-			"dont_alert_on_days": []int{},
-			"alerting_period": map[string]string{
-				"start_time": "00:00",
-				"end_time":   "00:00",
-			},
-			"down":    []int{1},
-			"trouble": []int{1},
-			"up":      []int{1},
-			"applogs": []int{1},
-			"anomaly": []int{1},
-		},
-		JobTitle:     0,
-		StatusIQRole: 25,
+		AlertSettings:      defaultAlertSettings,
+		JobTitle:           0,
+		StatusIQRole:       25,
 		MobileSettings: map[string]interface{}{
 			"call_provider_id": 0,
 			"country_code":     "",
@@ -375,20 +366,9 @@ func Test_userCreate(t *testing.T) {
 		EmailAddress:       "super@man.com",
 		Role:               0,
 		NotificationMethod: []int{1},
-		AlertSettings: map[string]interface{}{
-			"email_format":       1,
-			"dont_alert_on_days": []int{},
-			"alerting_period": map[string]string{
-				"start_time": "00:00",
-				"end_time":   "00:00",
-			},
-			"down":    []int{1},
-			"trouble": []int{1},
-			"up":      []int{1},
-			"applogs": []int{1},
-			"anomaly": []int{1},
-		},
-		JobTitle: 0,
+
+		AlertSettings: defaultAlertSettings,
+		JobTitle:      0,
 		MobileSettings: map[string]interface{}{
 			"call_provider_id": 0,
 			"country_code":     "",
