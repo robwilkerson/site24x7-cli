@@ -48,7 +48,7 @@ func (f UserAccessorFlags) validate() error {
 	if f.ID != "" && f.EmailAddress != "" {
 		return fmt.Errorf("please include either an ID OR an email address, not both")
 	} else if f.ID == "" && f.EmailAddress == "" {
-		return fmt.Errorf("either an ID or an email address is required to retrieve a user")
+		return fmt.Errorf("either an ID or an email address is required to identify a user")
 	}
 
 	return nil
