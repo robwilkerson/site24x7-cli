@@ -6,6 +6,9 @@ package impl
 import (
 	"fmt"
 	"site24x7/api"
+	"strings"
+
+	"github.com/spf13/pflag"
 )
 
 // UserAccessorFlags define optional data points that may be sent via command
@@ -25,8 +28,8 @@ type UserWriterFlags struct {
 	MonitorGroups        []string
 	AlertEmailFormat     int
 	AlertSkipDays        []int
-	AlertStartTime       string // not validated locally
-	AlertEndTime         string // not validated locally
+	AlertPeriodStartTime string // not validated locally
+	AlertPeriodEndTime   string // not validated locally
 	AlertMethodsDown     []int
 	AlertMethodsTrouble  []int
 	AlertMethodsUp       []int
@@ -48,7 +51,7 @@ func (f UserAccessorFlags) validate() error {
 	if f.ID != "" && f.EmailAddress != "" {
 		return fmt.Errorf("please include either an ID OR an email address, not both")
 	} else if f.ID == "" && f.EmailAddress == "" {
-		return fmt.Errorf("either an ID or an email address is required to retrieve a user")
+		return fmt.Errorf("either an ID or an email address is required to identify a user")
 	}
 
 	return nil
@@ -120,8 +123,46 @@ func (f UserWriterFlags) validate() error {
 	// NOTE: There some business logic aspects that we _could_ validate, but
 	// that feels like a pretty dark road. For example, in order to select a
 	// text or voice call notification method, mobile settings must be sent.
-	// going to punt on that kind of thing and just focus on validating actual
+	// Going to punt on that kind of thing and just focus on validating actual
 	// input values.
 
 	return nil
+}
+
+// PropertyMapper normalizes flag names to align with user properties
+func PropertyMapper(f *pflag.FlagSet, name string) pflag.NormalizedName {
+	switch name {
+	// for this one, the flag matches the Site24x7 terminology, but internally
+	// I think "notification methods" makes more sense
+	case "notify-by":
+		name = "NotificationMethods"
+
+	// Handle nested properties cleanly
+	case "alert-methods-down":
+		name = "AlertDownNotificationMethods"
+	case "alert-methods-trouble":
+		name = "AlertTroubleNotificationMethods"
+	case "alert-methods-up":
+		name = "AlertUpNotificationMethods"
+	case "alert-methods-applogs":
+		name = "AlertAppLogsNotificationMethods"
+	case "alert-methods-anomaly":
+		name = "AlertAnomalyNotificationMethods"
+
+	// The next few cases have abbreviations ("IQ", "SMS", etc.) that we have
+	// to case manually
+	case "statusiq-role":
+		name = "StatusIQRole"
+	case "mobile-sms-provider-id":
+		name = "MobileSMSProviderID"
+	case "mobile-call-provider-id":
+		name = "MobileCallProviderID"
+
+	// Everything else aligns pretty well with a "-" to CamelCase inflection
+	default:
+		t := strings.Title(name)
+		name = strings.Replace(t, "-", "", -1)
+	}
+
+	return pflag.NormalizedName(name)
 }

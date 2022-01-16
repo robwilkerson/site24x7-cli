@@ -38,14 +38,14 @@ func UserCreate(f UserWriterFlags, u *api.User, creator func() error) error {
 		EmailFormat: f.AlertEmailFormat,
 		SkipDays:    f.AlertSkipDays,
 		AlertingPeriod: api.UserAlertingPeriod{
-			StartTime: f.AlertStartTime,
-			EndTime:   f.AlertEndTime,
+			StartTime: f.AlertPeriodStartTime,
+			EndTime:   f.AlertPeriodEndTime,
 		},
-		DownAlertMethods:    lookupIds(f.AlertMethodsDown, api.UserNotificationMethods),
-		TroubleAlertMethods: lookupIds(f.AlertMethodsTrouble, api.UserNotificationMethods),
-		UpAlertMethods:      lookupIds(f.AlertMethodsUp, api.UserNotificationMethods),
-		AppLogsAlertMethods: lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
-		AnomalyAlertMethods: lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
+		DownNotificationMethods:    lookupIds(f.AlertMethodsDown, api.UserNotificationMethods),
+		TroubleNotificationMethods: lookupIds(f.AlertMethodsTrouble, api.UserNotificationMethods),
+		UpNotificationMethods:      lookupIds(f.AlertMethodsUp, api.UserNotificationMethods),
+		AppLogsNotificationMethods: lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
+		AnomalyNotificationMethods: lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
 	}
 	u.MobileSettings = api.UserMobileSettings{
 		CountryCode:    f.MobileCountryCode,
