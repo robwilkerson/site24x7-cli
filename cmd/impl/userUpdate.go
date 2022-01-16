@@ -5,39 +5,69 @@
 package impl
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 	"site24x7/api"
+	"strings"
+
+	"github.com/spf13/pflag"
 )
 
-// setName updates the user's display name, if appropriate
-func setUserName(u *api.User, newValue string) {
-	if newValue != "" && u.Name != newValue {
-		u.Name = newValue
-	}
-}
+// TODO: These set*Property() functions are effectively duplicates
 
-func setUserProperty(u *api.User, property string, value interface{}) error {
-	fmt.Printf("Setting %s to %v\n", property, value)
+// setAlertingPeriodProperty sets a specific struct property
+func setAlertingPeriodProperty(u *api.UserAlertingPeriod, property string, value interface{}) {
 	ru := reflect.ValueOf(u)
 
-	// verify that u is a pointer to a struct
-	if ru.Kind() != reflect.Ptr || ru.Elem().Kind() != reflect.Struct {
-		return errors.New("[setUserProperty] expected a pointer to struct")
-	}
 	// dereference the pointer
 	ru = ru.Elem()
 
-	// lookup the field by name
+	// lookup the field by name and set the new value
 	f := ru.FieldByName(property)
 	f.Set(reflect.ValueOf(value))
+}
 
-	return nil
+// setAlertSettingsProperty sets a specific struct property
+func setAlertSettingsProperty(u *api.UserAlertSettings, property string, value interface{}) {
+	ru := reflect.ValueOf(u)
+
+	// dereference the pointer
+	ru = ru.Elem()
+
+	// lookup the field by name and set the new value
+	f := ru.FieldByName(property)
+	f.Set(reflect.ValueOf(value))
+}
+
+// setMobileSettingsProperty sets a specific struct property
+func setMobileSettingsProperty(u *api.UserMobileSettings, property string, value interface{}) {
+	ru := reflect.ValueOf(u)
+
+	// dereference the pointer
+	ru = ru.Elem()
+
+	// lookup the field by name and set the new value
+	f := ru.FieldByName(property)
+	f.Set(reflect.ValueOf(value))
+}
+
+// setUserProperty sets a specific struct property
+func setUserProperty(u *api.User, property string, value interface{}) {
+	ru := reflect.ValueOf(u)
+
+	// dereference the pointer
+	ru = ru.Elem()
+
+	// lookup the field by name and set the new value
+	f := ru.FieldByName(property)
+	f.Set(reflect.ValueOf(value))
 }
 
 // UserUpdate is the testable implementation code for cmd.userUpdateCmd
-func UserUpdate(a UserAccessorFlags, f UserWriterFlags, u *api.User, updater func() error) error {
+func UserUpdate(f *pflag.FlagSet, u *api.User, updater func() error) error {
+	a := UserAccessorFlags{}
+	a.ID, _ = f.GetString("ID")
+	a.EmailAddress, _ = f.GetString("Email")
 	if err := a.validate(); err != nil {
 		return err
 	}
@@ -52,63 +82,46 @@ func UserUpdate(a UserAccessorFlags, f UserWriterFlags, u *api.User, updater fun
 		return err
 	}
 
-	// TODO: Merge existing data with data passed on flags
-	// fmt.Println("AFTER GETTING")
-	// fmt.Printf("%+v\n", u)
+	// Iterate over flags that were explicitly set and update the appropriate
+	// user property
+	f.Visit(func(fl *pflag.Flag) {
+		// Ignore the accessor flags we've extracted above; they're read only
+		if fl.Name != "ID" && fl.Name != "Email" {
+			// Extract the appropriately typed value from the flag
+			var v interface{}
+			switch fl.Value.Type() {
+			case "string":
+				v, _ = f.GetString(fl.Name)
+			case "int":
+				v, _ = f.GetInt(fl.Name)
+			case "stringSlice":
+				v, _ = f.GetStringSlice(fl.Name)
+			case "intSlice":
+				v, _ = f.GetIntSlice(fl.Name)
+			default:
+				// we can't return an error from this function, which would be
+				// nice and tidy, so just panic; we def don't want to continue
+				panic(fmt.Sprintf("[UserUpdate] Unhandled data type (%s) for the %s flag", fl.Value.Type(), fl.Name))
+			}
 
-	// TODO: update the user object with any flag info that's different
-	// setUserName(u, f.Name)
-	// fields := reflect.VisibleFields(reflect.TypeOf(*u))
-	fields := reflect.VisibleFields(reflect.TypeOf(f))
-	// flags := reflect.ValueOf(f)
-	fmt.Printf("%+v\n", flags)
-
-	for _, field := range fields {
-		// If the flag name matches the field name and the flag isn't a
-		// zero value, update the user property
-		flag := flags.FieldByName(field.Name)
-		if flag.IsValid() && !flag.IsZero() {
-			if err := setUserProperty(u, field.Name, flag.Interface()); err != nil {
-				return err
+			if strings.HasPrefix(fl.Name, "AlertPeriod") {
+				ap := &u.AlertSettings.AlertingPeriod
+				setAlertingPeriodProperty(ap, strings.Replace(fl.Name, "AlertPeriod", "", -1), v)
+			} else if strings.HasPrefix(fl.Name, "Alert") {
+				as := &u.AlertSettings
+				setAlertSettingsProperty(as, strings.Replace(fl.Name, "Alert", "", -1), v)
+			} else if strings.HasPrefix(fl.Name, "Mobile") {
+				ms := &u.MobileSettings
+				setMobileSettingsProperty(ms, strings.Replace(fl.Name, "Mobile", "", -1), v)
+			} else {
+				setUserProperty(u, fl.Name, v)
 			}
 		}
+	})
+
+	if err := updater(); err != nil {
+		return err
 	}
-
-	fmt.Println("AFTER SETTING NAME")
-	fmt.Printf("%+v\n", u)
-	return nil
-
-	// Hydrate the user with values now known to be valid
-	// u.Name = f.Name
-	// u.Role = f.Role
-	// u.NotificationMethod = f.NotifyMethod
-	// u.MonitorGroups = f.MonitorGroups
-	// u.JobTitle = f.JobTitle
-	// u.AlertSettings = map[string]interface{}{
-	// 	"email_format":       f.AlertEmailFormat,
-	// 	"dont_alert_on_days": f.AlertSkipDays,
-	// 	"alerting_period": map[string]string{
-	// 		"start_time": f.AlertStartTime,
-	// 		"end_time":   f.AlertEndTime,
-	// 	},
-	// 	"down":    lookupIds(f.AlertMethodsDown, api.UserNotificationMethods),
-	// 	"trouble": lookupIds(f.AlertMethodsTrouble, api.UserNotificationMethods),
-	// 	"up":      lookupIds(f.AlertMethodsUp, api.UserNotificationMethods),
-	// 	"applogs": lookupIds(f.AlertMethodsAppLogs, api.UserNotificationMethods),
-	// 	"anomaly": lookupIds(f.AlertMethodsAnomaly, api.UserNotificationMethods),
-	// }
-	// u.MobileSettings = map[string]interface{}{
-	// 	"country_code":     f.MobileCountryCode,
-	// 	"mobile_number":    f.MobileNumber,
-	// 	"sms_provider_id":  f.MobileSMSProviderID,
-	// 	"call_provider_id": f.MobileCallProviderID,
-	// }
-	// u.StatusIQRole = f.StatusIQRole
-	// u.CloudspendRole = f.CloudSpendRole
-
-	// if err := updater(); err != nil {
-	// 	return err
-	// }
 
 	return nil
 }

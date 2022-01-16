@@ -86,14 +86,14 @@ type UserAlertingPeriod struct {
 
 // UserAlertSettings defines a set of alert preferences
 type UserAlertSettings struct {
-	EmailFormat         int                `json:"email_format"`
-	SkipDays            []int              `json:"dont_alert_on_days"`
-	AlertingPeriod      UserAlertingPeriod `json:"alerting_period"`
-	DownAlertMethods    []int              `json:"down"`
-	TroubleAlertMethods []int              `json:"trouble"`
-	UpAlertMethods      []int              `json:"up"`
-	AppLogsAlertMethods []int              `json:"applogs"`
-	AnomalyAlertMethods []int              `json:"anomaly"`
+	EmailFormat                int                `json:"email_format"`
+	SkipDays                   []int              `json:"dont_alert_on_days"`
+	AlertingPeriod             UserAlertingPeriod `json:"alerting_period"`
+	DownNotificationMethods    []int              `json:"down"`
+	TroubleNotificationMethods []int              `json:"trouble"`
+	UpNotificationMethods      []int              `json:"up"`
+	AppLogsNotificationMethods []int              `json:"applogs"`
+	AnomalyNotificationMethods []int              `json:"anomaly"`
 }
 
 // UserMobileSettings provides details for sending alerts to a mobile device
@@ -106,6 +106,7 @@ type UserMobileSettings struct {
 
 // User defines the user data returned by Site24x7's user endpoints
 type User struct {
+	// TODO: "Id" --> "ID"
 	Id                  string                 `json:"user_id"`
 	Name                string                 `json:"display_name"`
 	EmailAddress        string                 `json:"email_address"`
@@ -286,35 +287,39 @@ func (u *User) Get() error {
 	return nil
 }
 
-// TODO: func (u *User) Update() error {}
+// Update modifies an account user. https://www.site24x7.com/help/api/#update-user
 func (u *User) Update() error {
 	// See whether this user already exists
-	err := u.findUserByEmail()
+	//
+	exists, err := UserExists(u.EmailAddress)
 	if err != nil {
 		return err
 	}
+	if !exists {
+		return &NotFoundError{"[User.Update] User not found"}
+	}
 
-	// TODO: include optional data from flags
 	data := map[string]interface{}{
-		"display_name":  u.Name,
-		"email_address": u.EmailAddress,
-		// "user_role":       u.Role,
-		// "notify_medium":   u.NotificationMethod,
-		// "alert_settings":  u.AlertSettings,
-		// "job_title":       u.JobTitle,
-		// "mobile_settings": u.MobileSettings,
+		"display_name":    u.Name,
+		"email_address":   u.EmailAddress,
+		"user_role":       u.Role,
+		"notify_medium":   u.NotificationMethods,
+		"alert_settings":  u.AlertSettings,
+		"job_title":       u.JobTitle,
+		"mobile_settings": u.MobileSettings,
+		"user_groups":     u.MonitorGroups,
 	}
 
 	// 0 is the default status iq and cloudspend role, but it's not a valid
 	// role for either and the call will error if sent as such. Only send them
 	// if the user entered a non-default value.
 
-	// if u.StatusIQRole != 0 {
-	// 	data["statusiq_role"] = u.StatusIQRole
-	// }
-	// if u.CloudspendRole != 0 {
-	// 	data["cloudspend_role"] = u.CloudspendRole
-	// }
+	if u.StatusIQRole != 0 {
+		data["statusiq_role"] = u.StatusIQRole
+	}
+	if u.CloudspendRole != 0 {
+		data["cloudspend_role"] = u.CloudspendRole
+	}
 
 	body, _ := json.Marshal(data)
 
@@ -322,7 +327,7 @@ func (u *User) Update() error {
 	// fmt.Println(string(data))
 
 	req := Request{
-		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
+		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), u.Id),
 		Method:   "PUT",
 		Headers: http.Header{
 			"Accept": {"application/json; version=2.0"},
@@ -334,14 +339,14 @@ func (u *User) Update() error {
 	if err != nil {
 		return err
 	}
+	// fmt.Printf("%+v", res)
 	if res.Data == nil || res.Message != "success" {
-		// fmt.Printf("%+v", res)
-		return fmt.Errorf("[User.Create] API Response error; %s", res.Message)
+		return fmt.Errorf("[User.Update] API Response error; %s", res.Message)
 	}
 
 	// Unmarshal the domain data from the response
 	if err = json.Unmarshal(res.Data, &u); err != nil {
-		return fmt.Errorf("[User.Create] Unable to  parse response data (%s)", err)
+		return fmt.Errorf("[User.Update] Unable to  parse response data (%s)", err)
 	}
 
 	return nil

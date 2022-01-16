@@ -91,7 +91,7 @@ func Test_userGet(t *testing.T) {
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "either an ID or an email address is required to retrieve a user",
+			wantErrMsg: "either an ID or an email address is required to identify a user",
 		},
 		{
 			name: "Handles an error thrown by the getter",

@@ -71,8 +71,8 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("monitor-groups")
 		f.AlertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
 		f.AlertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
-		f.AlertStartTime, _ = cmd.Flags().GetString("alert-start-time")
-		f.AlertEndTime, _ = cmd.Flags().GetString("alert-end-time")
+		f.AlertPeriodStartTime, _ = cmd.Flags().GetString("alert-start-time")
+		f.AlertPeriodEndTime, _ = cmd.Flags().GetString("alert-end-time")
 		f.AlertMethodsDown, _ = cmd.Flags().GetIntSlice("alert-methods-down")
 		f.AlertMethodsTrouble, _ = cmd.Flags().GetIntSlice("alert-methods-trouble")
 		f.AlertMethodsUp, _ = cmd.Flags().GetIntSlice("alert-methods-up")
@@ -142,40 +142,12 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants
 Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants`,
 	Aliases: []string{"modify"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var a impl.UserAccessorFlags
-		var f impl.UserWriterFlags
-
-		a.ID, _ = cmd.Flags().GetString("id")
-		a.EmailAddress, _ = cmd.Flags().GetString("email")
-
-		// Parse flag values
-		f.Name, _ = cmd.Flags().GetString("name")
-		// f.Role, _ = cmd.Flags().GetInt("role")
-		// f.NotifyMethod, _ = cmd.Flags().GetIntSlice("notify-by")
-		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("monitor-groups")
-		// f.AlertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
-		// f.AlertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
-		// f.AlertStartTime, _ = cmd.Flags().GetString("alert-start-time")
-		// f.AlertEndTime, _ = cmd.Flags().GetString("alert-end-time")
-		// f.AlertMethodsDown, _ = cmd.Flags().GetIntSlice("alert-methods-down")
-		// f.AlertMethodsTrouble, _ = cmd.Flags().GetIntSlice("alert-methods-trouble")
-		// f.AlertMethodsUp, _ = cmd.Flags().GetIntSlice("alert-methods-up")
-		// f.AlertMethodsAppLogs, _ = cmd.Flags().GetIntSlice("alert-methods-applogs")
-		// f.AlertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
-		// f.JobTitle, _ = cmd.Flags().GetInt("job-title")
-		// f.MonitorGroups, _ = cmd.Flags().GetStringSlice("groups")
-		// f.MobileCountryCode, _ = cmd.Flags().GetString("mobile-country-code")
-		// f.MobileNumber, _ = cmd.Flags().GetString("mobile-phone-number")
-		// f.MobileSMSProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
-		// f.MobileCallProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
-		// f.NonEUAlertConsent, _ = cmd.Flags().GetBool("non-eu-alert-consent")
-		// f.ResourceType, _ = cmd.Flags().GetInt("resource-type")
-		// f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
-		// f.CloudSpendRole, _ = cmd.Flags().GetInt("cloudspend-role")
+		// Align flag names with struct property values
+		cmd.Flags().SetNormalizeFunc(impl.PropertyMapper)
 
 		// Do all of the work in a testable custom function
 		u := api.User{}
-		if err := impl.UserUpdate(a, f, &u, u.Update); err != nil {
+		if err := impl.UserUpdate(cmd.Flags(), &u, u.Update); err != nil {
 			return err
 		}
 
@@ -256,8 +228,8 @@ func init() {
 	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
 	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
 	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
-	userCreateCmd.Flags().StringSliceP("monitor-groups", "g", nil, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
-	userCreateCmd.Flags().String("alert-email-format", "html", "Email format for alert emails")
+	userCreateCmd.Flags().StringSliceP("monitor-groups", "g", []string{}, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
+	userCreateCmd.Flags().Int("alert-email-format", 1, "Email format for alert emails")
 	userCreateCmd.Flags().IntSlice("alert-skip-days", []int{}, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
 	userCreateCmd.Flags().String("alert-start-time", "00:00", "The time of day when the user should start receiving alerts")
 	userCreateCmd.Flags().String("alert-end-time", "00:00", "The time of day when the user should stop receiving alerts")
@@ -267,7 +239,6 @@ func init() {
 	userCreateCmd.Flags().IntSlice("alert-methods-applogs", []int{1}, "Preferred notification methods for alerts related to application logs")
 	userCreateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
 	userCreateCmd.Flags().Int("job-title", 0, "Job title of the user")
-	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
 	userCreateCmd.Flags().String("mobile-country-code", "", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
 	userCreateCmd.Flags().String("mobile-phone-number", "", "Digits only; required if voice and/or sms notifications are requested")
 	userCreateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
@@ -275,40 +246,40 @@ func init() {
 	userCreateCmd.Flags().Int("resource-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
 	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
 	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
+	// Not a user property, just something to pass on the request
+	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
 
 	// Flags for the `user get` command
 	userGetCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userGetCmd.Flags().StringP("email", "e", "", "A user email address")
 
 	// Flags for the `user update` command
-	// TODO: The Site24x7 looks to be pretty ham-fisted with this one based
-	// solely on a look at the docs. Will have to do some testing flag by flag.
-	// Flags specifically for targeting the user we want to update
+	// Accessor flags
 	userUpdateCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userUpdateCmd.Flags().StringP("email", "e", "", "A user email address")
+	// Writer flags
 	userUpdateCmd.Flags().StringP("name", "n", "", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
-	// Flags to set key data points
-	// userUpdateCmd.Flags().IntP("role", "r", -1, "Role assigned to the user for Site24x7 access")
-	// userUpdateCmd.Flags().IntSliceP("notify-by", "N", []int{}, "Medium by which the user will receive alerts")
-	// userUpdateCmd.Flags().StringSliceP("monitor-groups", "g", []string{}, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
-	// userUpdateCmd.Flags().String("alert-email-format", "html", "Email format for alert emails")
-	// userUpdateCmd.Flags().IntSlice("alert-skip-days", []int{}, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
-	// userUpdateCmd.Flags().String("alert-start-time", "00:00", "The time of day when the user should start receiving alerts")
-	// userUpdateCmd.Flags().String("alert-end-time", "00:00", "The time of day when the user should stop receiving alerts")
-	// userUpdateCmd.Flags().IntSlice("alert-methods-down", []int{1}, "Preferred notification methods for down alerts")
-	// userUpdateCmd.Flags().IntSlice("alert-methods-trouble", []int{1}, "Preferred notification methods for trouble alerts")
-	// userUpdateCmd.Flags().IntSlice("alert-methods-up", []int{1}, "Preferred notification methods when service is restored")
-	// userUpdateCmd.Flags().IntSlice("alert-methods-applogs", []int{1}, "Preferred notification methods for alerts related to application logs")
-	// userUpdateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
-	// userUpdateCmd.Flags().Int("job-title", 0, "Job title of the user")
-	// userUpdateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
-	// userUpdateCmd.Flags().String("mobile-country-code", "", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
-	// userUpdateCmd.Flags().String("mobile-phone-number", "", "Digits only; required if voice and/or sms notifications are requested")
-	// userUpdateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
-	// userUpdateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
-	// userUpdateCmd.Flags().Int("resource-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
-	// userUpdateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
-	// userUpdateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
+	userUpdateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
+	userUpdateCmd.Flags().IntSlice("notify-by", nil, "Medium by which the user will receive alerts")
+	userUpdateCmd.Flags().StringSliceP("monitor-groups", "g", nil, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
+	userUpdateCmd.Flags().Int("alert-email-format", 1, "Email format for alert emails")
+	userUpdateCmd.Flags().IntSlice("alert-skip-days", nil, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
+	userUpdateCmd.Flags().String("alert-period-start-time", "nil", "The time of day when the user should start receiving alerts")
+	userUpdateCmd.Flags().String("alert-period-end-time", "nil", "The time of day when the user should stop receiving alerts")
+	userUpdateCmd.Flags().IntSlice("alert-methods-down", nil, "Preferred notification methods for down alerts")
+	userUpdateCmd.Flags().IntSlice("alert-methods-trouble", nil, "Preferred notification methods for trouble alerts")
+	userUpdateCmd.Flags().IntSlice("alert-methods-up", nil, "Preferred notification methods when service is restored")
+	userUpdateCmd.Flags().IntSlice("alert-methods-applogs", nil, "Preferred notification methods for alerts related to application logs")
+	userUpdateCmd.Flags().IntSlice("alert-methods-anomaly", nil, "Preferred notification methods for alerts when an anomaly is detected")
+	userUpdateCmd.Flags().Int("job-title", -1, "Job title of the user")
+	userUpdateCmd.Flags().Bool("non-eu-alert-consent", true, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
+	userUpdateCmd.Flags().String("mobile-country-code", "nil", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
+	userUpdateCmd.Flags().String("mobile-phone-number", "nil", "Digits only; required if voice and/or sms notifications are requested")
+	userUpdateCmd.Flags().Int("mobile-sms-provider-id", -1, "See https://www.site24x7.com/help/api/#alerting_constants")
+	userUpdateCmd.Flags().Int("mobile-call-provider-id", -1, "See https://www.site24x7.com/help/api/#alerting_constants")
+	userUpdateCmd.Flags().Int("resource-type", -1, "See https://www.site24x7.com/help/api/#resource_type_constants")
+	userUpdateCmd.Flags().Int("statusiq-role", -1, "Role assigned to the user for accessing StatusIQ")
+	userUpdateCmd.Flags().Int("cloudspend-role", -1, "Role assigned to the user for accessing CloudSpend")
 
 	// Flags for the `user delete` command
 	userDeleteCmd.Flags().StringP("id", "i", "", "A user identifier")
