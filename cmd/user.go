@@ -219,11 +219,7 @@ func init() {
 	// is called directly, e.g.:
 	// userCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	// 22 Flags for the `user create` command:
-	// 	 ->  10 "simple flags
-	//      + 9 alert settings
-	//      + 4 mobile settings
-	//      - 1 email address passed as an arg (no sensible default value)
+	// Flags for the `user create` command
 	// https://www.site24x7.com/help/api/#create-new-user
 	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
 	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
@@ -250,14 +246,18 @@ func init() {
 	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
 
 	// Flags for the `user get` command
+	// https://www.site24x7.com/help/api/#retrieve-user
 	userGetCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userGetCmd.Flags().StringP("email", "e", "", "A user email address")
 
 	// Flags for the `user update` command
-	// Accessor flags
+	// https://www.site24x7.com/help/api/#update-user
+	// Accessor flags that allow us to fetch the existing user to both verify
+	// existence and hydrate the user struct with current values
 	userUpdateCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userUpdateCmd.Flags().StringP("email", "e", "", "A user email address")
 	// Writer flags
+	// Any writer flags that are passed will translate to updated user info
 	userUpdateCmd.Flags().StringP("name", "n", "", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
 	userUpdateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
 	userUpdateCmd.Flags().IntSlice("notify-by", nil, "Medium by which the user will receive alerts")
@@ -282,6 +282,7 @@ func init() {
 	userUpdateCmd.Flags().Int("cloudspend-role", -1, "Role assigned to the user for accessing CloudSpend")
 
 	// Flags for the `user delete` command
+	// https://www.site24x7.com/help/api/#delete-user
 	userDeleteCmd.Flags().StringP("id", "i", "", "A user identifier")
 	userDeleteCmd.Flags().StringP("email", "e", "", "A user email address")
 }
