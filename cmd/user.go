@@ -18,7 +18,7 @@ package cmd
 import (
 	"fmt"
 	"site24x7/api"
-	"site24x7/cmd/impl"
+	"site24x7/cmd/impl/user"
 
 	"github.com/spf13/cobra"
 )
@@ -62,38 +62,14 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f impl.UserWriterFlags
-
-		// Parse flag values
-		f.Name, _ = cmd.Flags().GetString("name")
-		f.Role, _ = cmd.Flags().GetInt("role")
-		f.NotificationMethods, _ = cmd.Flags().GetIntSlice("notify-by")
-		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("monitor-groups")
-		f.AlertEmailFormat, _ = cmd.Flags().GetInt("alert-email-format")
-		f.AlertSkipDays, _ = cmd.Flags().GetIntSlice("alert-skip-days")
-		f.AlertPeriodStartTime, _ = cmd.Flags().GetString("alert-start-time")
-		f.AlertPeriodEndTime, _ = cmd.Flags().GetString("alert-end-time")
-		f.AlertMethodsDown, _ = cmd.Flags().GetIntSlice("alert-methods-down")
-		f.AlertMethodsTrouble, _ = cmd.Flags().GetIntSlice("alert-methods-trouble")
-		f.AlertMethodsUp, _ = cmd.Flags().GetIntSlice("alert-methods-up")
-		f.AlertMethodsAppLogs, _ = cmd.Flags().GetIntSlice("alert-methods-applogs")
-		f.AlertMethodsAnomaly, _ = cmd.Flags().GetIntSlice("alert-methods-anomaly")
-		f.JobTitle, _ = cmd.Flags().GetInt("job-title")
-		f.MonitorGroups, _ = cmd.Flags().GetStringSlice("groups")
-		f.MobileCountryCode, _ = cmd.Flags().GetString("mobile-country-code")
-		f.MobileNumber, _ = cmd.Flags().GetString("mobile-phone-number")
-		f.MobileSMSProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
-		f.MobileCallProviderID, _ = cmd.Flags().GetInt("mobile-sms-provider-id")
-		f.NonEUAlertConsent, _ = cmd.Flags().GetBool("non-eu-alert-consent")
-		f.ResourceType, _ = cmd.Flags().GetInt("resource-type")
-		f.StatusIQRole, _ = cmd.Flags().GetInt("statusiq-role")
-		f.CloudspendRole, _ = cmd.Flags().GetInt("cloudspend-role")
-
 		// Do all of the work in a testable custom function
 		u := api.User{EmailAddress: args[0]}
-		if err := impl.UserCreate(f, &u, u.Create); err != nil {
+		json, err := user.Create(cmd.Flags(), &u, u.Create)
+		if err != nil {
 			return err
 		}
+
+		fmt.Println(string(json))
 
 		return nil
 	},
@@ -110,18 +86,18 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f impl.UserAccessorFlags
-		f.ID, _ = cmd.Flags().GetString("id")
-		f.EmailAddress, _ = cmd.Flags().GetString("email")
+		// var f impl.UserAccessorFlags
+		// f.ID, _ = cmd.Flags().GetString("id")
+		// f.EmailAddress, _ = cmd.Flags().GetString("email")
 
 		// Do all of the work in a testable custom function
-		u := api.User{}
-		json, err := impl.UserGet(f, &u, u.Get)
-		if err != nil {
-			return err
-		}
+		// u := api.User{}
+		// json, err := impl.UserGet(cmd.Flags(), &u, u.Get)
+		// if err != nil {
+		// 	return err
+		// }
 
-		fmt.Println(string(json))
+		// fmt.Println(string(json))
 
 		return nil
 	},
@@ -142,14 +118,11 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants
 Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants`,
 	Aliases: []string{"modify"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Align flag names with struct property values
-		cmd.Flags().SetNormalizeFunc(impl.PropertyMapper)
-
 		// Do all of the work in a testable custom function
-		u := api.User{}
-		if err := impl.UserUpdate(cmd.Flags(), &u, u.Update); err != nil {
-			return err
-		}
+		// u := api.User{}
+		// if err := impl.UserUpdate(cmd.Flags(), &u, u.Update); err != nil {
+		// 	return err
+		// }
 
 		return nil
 	},
@@ -166,18 +139,18 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"del", "rm", "remove"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var f impl.UserAccessorFlags
-		f.ID, _ = cmd.Flags().GetString("id")
-		f.EmailAddress, _ = cmd.Flags().GetString("email")
+		// var f impl.UserAccessorFlags
+		// f.ID, _ = cmd.Flags().GetString("id")
+		// f.EmailAddress, _ = cmd.Flags().GetString("email")
 
 		// Do all of the work in a testable custom function
-		u := api.User{}
-		err := impl.UserDelete(f, &u, u.Delete)
-		if err != nil {
-			return err
-		}
+		// u := api.User{}
+		// err := impl.UserDelete(cmd.Flags(), &u, u.Delete)
+		// if err != nil {
+		// 	return err
+		// }
 
-		fmt.Println("User successfully deleted!")
+		// fmt.Println("User successfully deleted!")
 
 		return nil
 	},
@@ -190,12 +163,12 @@ var userListCmd = &cobra.Command{
 	Long:    `Retrieves a list of all users.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		json, err := impl.UserList(api.GetUsers)
-		if err != nil {
-			return err
-		}
+		// json, err := impl.UserList(api.GetUsers)
+		// if err != nil {
+		// 	return err
+		// }
 
-		fmt.Println(string(json))
+		// fmt.Println(string(json))
 
 		return nil
 	},
@@ -240,8 +213,8 @@ func init() {
 	userCreateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
 	userCreateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
 	userCreateCmd.Flags().Int("resource-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
-	userCreateCmd.Flags().Int("statusiq-role", 0, "Role assigned to the user for accessing StatusIQ")
-	userCreateCmd.Flags().Int("cloudspend-role", 0, "Role assigned to the user for accessing CloudSpend")
+	userCreateCmd.Flags().Int("statusiq-role", -1, "Role assigned to the user for accessing StatusIQ")
+	userCreateCmd.Flags().Int("cloudspend-role", -1, "Role assigned to the user for accessing CloudSpend")
 	// Not a user property, just something to pass on the request
 	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
 

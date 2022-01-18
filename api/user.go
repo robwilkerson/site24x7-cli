@@ -99,7 +99,7 @@ type UserAlertSettings struct {
 // UserMobileSettings provides details for sending alerts to a mobile device
 type UserMobileSettings struct {
 	CountryCode    string `json:"country_code"`
-	Number         string `json:"mobile_number"`
+	PhoneNumber    string `json:"mobile_number"`
 	SMSProviderID  int    `json:"sms_provider_id"`
 	CallProviderID int    `json:"call_provider_id"`
 }
