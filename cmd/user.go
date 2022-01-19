@@ -134,18 +134,14 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"del", "rm", "remove"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// var f impl.UserAccessorFlags
-		// f.ID, _ = cmd.Flags().GetString("id")
-		// f.EmailAddress, _ = cmd.Flags().GetString("email")
-
 		// Do all of the work in a testable custom function
-		// u := api.User{}
-		// err := impl.UserDelete(cmd.Flags(), &u, u.Delete)
-		// if err != nil {
-		// 	return err
-		// }
+		u := api.User{}
+		err := user.Delete(cmd.Flags(), &u, u.Delete)
+		if err != nil {
+			return err
+		}
 
-		// fmt.Println("User successfully deleted!")
+		fmt.Println("User successfully deleted!")
 
 		return nil
 	},
@@ -240,7 +236,6 @@ func init() {
 	userUpdateCmd.Flags().IntSlice("alert-methods-applogs", nil, "Preferred notification methods for alerts related to application logs")
 	userUpdateCmd.Flags().IntSlice("alert-methods-anomaly", nil, "Preferred notification methods for alerts when an anomaly is detected")
 	userUpdateCmd.Flags().Int("job-title", -1, "Job title of the user")
-	userUpdateCmd.Flags().Bool("non-eu-alert-consent", true, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
 	userUpdateCmd.Flags().String("mobile-country-code", "nil", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
 	userUpdateCmd.Flags().String("mobile-phone-number", "nil", "Digits only; required if voice and/or sms notifications are requested")
 	userUpdateCmd.Flags().Int("mobile-sms-provider-id", -1, "See https://www.site24x7.com/help/api/#alerting_constants")
@@ -248,6 +243,8 @@ func init() {
 	userUpdateCmd.Flags().Int("resource-type", -1, "See https://www.site24x7.com/help/api/#resource_type_constants")
 	userUpdateCmd.Flags().Int("statusiq-role", -1, "Role assigned to the user for accessing StatusIQ")
 	userUpdateCmd.Flags().Int("cloudspend-role", -1, "Role assigned to the user for accessing CloudSpend")
+	// Not a user property, just something to pass on the request
+	userUpdateCmd.Flags().Bool("non-eu-alert-consent", true, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
 
 	// Flags for the `user delete` command
 	// https://www.site24x7.com/help/api/#delete-user
