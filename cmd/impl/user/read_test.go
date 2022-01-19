@@ -68,3 +68,53 @@ func TestRead(t *testing.T) {
 		})
 	}
 }
+
+func TestList(t *testing.T) {
+	type args struct {
+		getter func() ([]api.User, error)
+	}
+	mockUsers := []api.User{
+		{EmailAddress: "humpty@dumpty.com"},
+		{EmailAddress: "alice@wonderland.com"},
+	}
+	mockUsersJSON, _ := json.MarshalIndent(mockUsers, "", "    ")
+	tests := []struct {
+		name    string
+		args    args
+		want    []byte
+		wantErr bool
+	}{
+		{
+			name: "Handles an error thrown by the getter",
+			args: args{
+				getter: func() ([]api.User, error) {
+					return nil, errors.New("testing!")
+				},
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name: "Returns a list of users",
+			args: args{
+				getter: func() ([]api.User, error) {
+					return mockUsers, nil
+				},
+			},
+			want:    mockUsersJSON,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := List(tt.args.getter)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("List() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("List() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

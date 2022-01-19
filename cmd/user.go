@@ -151,19 +151,19 @@ usability.`,
 	},
 }
 
-// userGetCmd represents the `user get` subcommand
+// userGetCmd represents the `user list` subcommand
 var userListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "Retrieves a list of all users",
 	Long:    `Retrieves a list of all users.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// json, err := impl.UserList(api.GetUsers)
-		// if err != nil {
-		// 	return err
-		// }
+		json, err := user.List(api.GetUsers)
+		if err != nil {
+			return err
+		}
 
-		// fmt.Println(string(json))
+		fmt.Println(string(json))
 
 		return nil
 	},
