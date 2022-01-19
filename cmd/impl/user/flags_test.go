@@ -344,3 +344,135 @@ func Test_validateWriters(t *testing.T) {
 		})
 	}
 }
+
+func Test_normalizeName(t *testing.T) {
+	type args struct {
+		f *pflag.Flag
+	}
+
+	d := pflag.NewFlagSet("defaultTestFlags", pflag.ExitOnError)
+	// default cases
+	d.Int("simpleflag", 0, "")
+	d.Int("multi-word-flag", 0, "")
+	// special cases
+	d.IntSlice("notify-by", []int{1}, "")
+	d.Int("alert-start-time", 0, "")
+	d.Int("alert-end-time", 0, "")
+	// nested properties
+	d.Int("alert-email-format", 1, "")
+	d.IntSlice("alert-skip-days", []int{}, "")
+	d.IntSlice("alert-methods-down", []int{1}, "")
+	d.IntSlice("alert-methods-trouble", []int{1}, "")
+	d.IntSlice("alert-methods-up", []int{1}, "")
+	d.IntSlice("alert-methods-applogs", []int{1}, "")
+	d.IntSlice("alert-methods-anomaly", []int{1}, "")
+	// acronym handling
+	d.Int("statusiq-role", 0, "")
+	d.Int("mobile-sms-provider-id", 0, "")
+	d.Int("mobile-call-provider-id", 0, "")
+
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "Handles a single word, simple flag",
+			args: args{
+				f: d.Lookup("simpleflag"),
+			},
+			want: "Simpleflag",
+		},
+		{
+			name: "Handles a multi-word, simple flag",
+			args: args{
+				f: d.Lookup("multi-word-flag"),
+			},
+			want: "MultiWordFlag",
+		},
+		{
+			name: "Handles notify-by",
+			args: args{
+				f: d.Lookup("notify-by"),
+			},
+			want: "NotificationMethods",
+		},
+		{
+			name: "Handles alert-start-time",
+			args: args{
+				f: d.Lookup("alert-start-time"),
+			},
+			want: "AlertingPeriodStartTime",
+		},
+		{
+			name: "Handles alert-end-time",
+			args: args{
+				f: d.Lookup("alert-end-time"),
+			},
+			want: "AlertingPeriodEndTime",
+		},
+		{
+			name: "Handles alert-methods-down",
+			args: args{
+				f: d.Lookup("alert-methods-down"),
+			},
+			want: "AlertDownNotificationMethods",
+		},
+		{
+			name: "Handles alert-methods-trouble",
+			args: args{
+				f: d.Lookup("alert-methods-trouble"),
+			},
+			want: "AlertTroubleNotificationMethods",
+		},
+		{
+			name: "Handles alert-methods-up",
+			args: args{
+				f: d.Lookup("alert-methods-up"),
+			},
+			want: "AlertUpNotificationMethods",
+		},
+		{
+			name: "Handles alert-methods-applogs",
+			args: args{
+				f: d.Lookup("alert-methods-applogs"),
+			},
+			want: "AlertAppLogsNotificationMethods",
+		},
+		{
+			name: "Handles alert-methods-anomaly",
+			args: args{
+				f: d.Lookup("alert-methods-anomaly"),
+			},
+			want: "AlertAnomalyNotificationMethods",
+		},
+		{
+			name: "Handles statusiq-role",
+			args: args{
+				f: d.Lookup("statusiq-role"),
+			},
+			want: "StatusIQRole",
+		},
+		{
+			name: "Handles mobile-sms-provider-id",
+			args: args{
+				f: d.Lookup("mobile-sms-provider-id"),
+			},
+			want: "MobileSMSProviderID",
+		},
+		{
+			name: "Handles mobile-call-provider-id",
+			args: args{
+				f: d.Lookup("mobile-call-provider-id"),
+			},
+			want: "MobileCallProviderID",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := normalizeName(tt.args.f); got != tt.want {
+				t.Errorf("normalizeName() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

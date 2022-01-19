@@ -86,18 +86,13 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// var f impl.UserAccessorFlags
-		// f.ID, _ = cmd.Flags().GetString("id")
-		// f.EmailAddress, _ = cmd.Flags().GetString("email")
+		u := api.User{}
+		json, err := user.Read(cmd.Flags(), &u, u.Get)
+		if err != nil {
+			return err
+		}
 
-		// Do all of the work in a testable custom function
-		// u := api.User{}
-		// json, err := impl.UserGet(cmd.Flags(), &u, u.Get)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// fmt.Println(string(json))
+		fmt.Println(string(json))
 
 		return nil
 	},

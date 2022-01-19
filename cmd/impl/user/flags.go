@@ -129,6 +129,7 @@ func validateWriters(fs *pflag.FlagSet) {
 	})
 }
 
+// normalizeName maps a flag name to a user property names
 func normalizeName(f *pflag.Flag) string {
 	switch f.Name {
 	// for this one, the flag matches the Site24x7 terminology, but internally
