@@ -2,7 +2,7 @@
 
 A CLI tool for interacting with the [Site24x7 API](https://www.site24x7.com/help/api/#introduction).
 
-This is currently _unreleased software_. The content of this README is anticipatory more than actual.
+This is currently _early alpha-level software at best_. The content of this README is anticipatory more than actual.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ To register an application and generate a client ID, client secret, and grant to
 
 If you're interested in contributing to the improvement, you'll need the tools to do so.
 
-1. [Go v1.16](https://golang.org) - other versions may work, but I've only tested on v1.16
+1. [Go v1.17.5](https://golang.org) - other versions may work, but I've only tested on this one
 
     There are other ways, of course, but for maximum flexibility, I installed Go using [asdf](https://asdf-vm.com). See the installation instructions below.
 

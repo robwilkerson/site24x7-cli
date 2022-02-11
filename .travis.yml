@@ -8,12 +8,12 @@ script:
   - go build
   - go test ./... -cover
 
-# before_deploy: "echo \"Creating Github release for version ${TRAVIS_TAG}\""
-# deploy:
-#   provider: releases
-#   api_key:
-#     secure:
-#   file: ./site24x7
-#   skip_cleanup: true
-#   on:
-#     tags: true
+before_deploy: "echo \"Creating a Github release for version ${TRAVIS_TAG}\""
+deploy:
+  provider: releases
+  api_key:
+    secure: "p9douJhEtXfpKey288WJnPd4YbBXeMoS76u5csS8EkG8zxYC20Oa1AoCuTc+eQk6KN1+8I/hobo9DYmPJxjlSaOXdiXgvdYwQDwSytVO8Y8oF+mJ1IZX8YG6tnNtiT+vJgO4H3LzSVihUGhJBnHgB4FE9Kd8vYv/5P/3CKmvYusr0ItFDqtZEt2B16wfoWVurFwV6TjrHBk5Jlw+qzyWwbRp7q6wKKHkBvelSPHICdsDlL7OMxpjfA50cus/mQRk8/5JvTLcvyKxmbHvIk0YDcX5TDuDoaecoKD1bpuMFPVQgbUVIH2tIjFsXlYv2d0VGMB0PuJ1XCq6z8jqy01y8mUCKzT2jC7kiL9D/G1IzWvcxVJdJvGj3rBRTunZYHM8vcDHisk0uA8HsmtYPIrlBCk8fcRVxl/I7JwsWAR/jPkxiP8fe9jVaxDtb62vb86r2IlaTf6V1o0bSVvU0YFlRfA8/Suf6QZVdHN8bdSbgR6RP/tgjUmOhbZkeI1V5Eu+KKVi4Z/xfT+dxlfZ/wB+uRKP62/4w2wPVFzjL9BqnX3J4loAlcp1vvl7gpl7N3TJk/bPgRlHACG/QvGe2GtFrK5C/uUkhe8blhMoDPlo3qdTV/FYWDVto7bGBSRJt+p+JJe51GHwzSTALAm99mo1Q37tLkf1DQ+wPuRfOnYmgjA="
+  file: ./site24x7
+  skip_cleanup: true
+  on:
+    tags: true
