@@ -62,10 +62,15 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Do all of the work in a testable custom function
-		u := api.User{EmailAddress: args[0]}
-		json, err := user.Create(cmd.Flags(), &u, u.Create)
+		email := args[0]
+		json, err := user.Create(email, cmd.Flags())
 		if err != nil {
+			// Handle a user already exists error nicely
+			if err, ok := err.(*api.ConflictError); ok {
+				fmt.Println(err)
+				return nil
+			}
+
 			return err
 		}
 
@@ -86,13 +91,17 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		u := api.User{}
-		json, err := user.Read(cmd.Flags(), &u, u.Get)
+		j, err := user.Get(cmd.Flags())
 		if err != nil {
+			if err, ok := err.(*api.NotFoundError); ok {
+				fmt.Println(err)
+				return nil
+			}
+
 			return err
 		}
 
-		fmt.Println(string(json))
+		fmt.Println(string(j))
 
 		return nil
 	},
@@ -113,11 +122,18 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants
 Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants`,
 	Aliases: []string{"modify"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Do all of the work in a testable custom function
-		// u := api.User{}
-		// if err := impl.UserUpdate(cmd.Flags(), &u, u.Update); err != nil {
-		// 	return err
-		// }
+		json, err := user.Update(cmd.Flags())
+		if err != nil {
+			// Handle a known error just a bit more cleanly
+			if err, ok := err.(*api.NotFoundError); ok {
+				fmt.Println(err)
+				return nil
+			}
+
+			return err
+		}
+
+		fmt.Println(string(json))
 
 		return nil
 	},
@@ -134,9 +150,7 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"del", "rm", "remove"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Do all of the work in a testable custom function
-		u := api.User{}
-		err := user.Delete(cmd.Flags(), &u, u.Delete)
+		err := user.Delete(cmd.Flags())
 		if err != nil {
 			return err
 		}
@@ -154,7 +168,7 @@ var userListCmd = &cobra.Command{
 	Long:    `Retrieves a list of all users.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		json, err := user.List(api.GetUsers)
+		json, err := user.List()
 		if err != nil {
 			return err
 		}
@@ -185,69 +199,20 @@ func init() {
 
 	// Flags for the `user create` command
 	// https://www.site24x7.com/help/api/#create-new-user
-	userCreateCmd.Flags().StringP("name", "n", "Unnamed User", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
-	userCreateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
-	userCreateCmd.Flags().IntSliceP("notify-by", "N", []int{1}, "Medium by which the user will receive alerts")
-	userCreateCmd.Flags().StringSliceP("monitor-groups", "g", []string{}, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
-	userCreateCmd.Flags().Int("alert-email-format", 1, "Email format for alert emails")
-	userCreateCmd.Flags().IntSlice("alert-skip-days", []int{}, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
-	userCreateCmd.Flags().String("alert-start-time", "00:00", "The time of day when the user should start receiving alerts")
-	userCreateCmd.Flags().String("alert-end-time", "00:00", "The time of day when the user should stop receiving alerts")
-	userCreateCmd.Flags().IntSlice("alert-methods-down", []int{1}, "Preferred notification methods for down alerts")
-	userCreateCmd.Flags().IntSlice("alert-methods-trouble", []int{1}, "Preferred notification methods for trouble alerts")
-	userCreateCmd.Flags().IntSlice("alert-methods-up", []int{1}, "Preferred notification methods when service is restored")
-	userCreateCmd.Flags().IntSlice("alert-methods-applogs", []int{1}, "Preferred notification methods for alerts related to application logs")
-	userCreateCmd.Flags().IntSlice("alert-methods-anomaly", []int{1}, "Preferred notification methods for alerts when an anomaly is detected")
-	userCreateCmd.Flags().Int("job-title", 0, "Job title of the user")
-	userCreateCmd.Flags().String("mobile-country-code", "", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
-	userCreateCmd.Flags().String("mobile-phone-number", "", "Digits only; required if voice and/or sms notifications are requested")
-	userCreateCmd.Flags().Int("mobile-sms-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
-	userCreateCmd.Flags().Int("mobile-call-provider-id", 0, "See https://www.site24x7.com/help/api/#alerting_constants")
-	userCreateCmd.Flags().Int("resource-type", 0, "See https://www.site24x7.com/help/api/#resource_type_constants")
-	userCreateCmd.Flags().Int("statusiq-role", -1, "Role assigned to the user for accessing StatusIQ")
-	userCreateCmd.Flags().Int("cloudspend-role", -1, "Role assigned to the user for accessing CloudSpend")
-	// Not a user property, just something to pass on the request
-	userCreateCmd.Flags().Bool("non-eu-alert-consent", false, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
+	userCreateCmd.Flags().AddFlagSet(user.GetWriterFlags())
 
 	// Flags for the `user get` command
 	// https://www.site24x7.com/help/api/#retrieve-user
-	userGetCmd.Flags().StringP("id", "i", "", "A user identifier")
-	userGetCmd.Flags().StringP("email", "e", "", "A user email address")
+	userGetCmd.Flags().AddFlagSet(user.GetAccessorFlags())
 
-	// Flags for the `user update` command
+	// Flags for the `user update` command; updating a user requires us to
+	// identify the user that will be updated and identify the data points that
+	// will be updated
 	// https://www.site24x7.com/help/api/#update-user
-	// Accessor flags that allow us to fetch the existing user to both verify
-	// existence and hydrate the user struct with current values
-	userUpdateCmd.Flags().StringP("id", "i", "", "A user identifier")
-	userUpdateCmd.Flags().StringP("email", "e", "", "A user email address")
-	// Writer flags
-	// Any writer flags that are passed will translate to updated user info
-	userUpdateCmd.Flags().StringP("name", "n", "", "Full name (first last) of the user, e.g. \"Fred Flintstone\"")
-	userUpdateCmd.Flags().IntP("role", "r", 0, "Role assigned to the user for Site24x7 access")
-	userUpdateCmd.Flags().IntSlice("notify-by", nil, "Medium by which the user will receive alerts")
-	userUpdateCmd.Flags().StringSliceP("monitor-groups", "g", nil, "List of monitor group identifiers to which the user should be assigned for receiving alerts")
-	userUpdateCmd.Flags().Int("alert-email-format", 1, "Email format for alert emails")
-	userUpdateCmd.Flags().IntSlice("alert-skip-days", nil, "Days of the week on which the user should not be sent alerts: 0 (Sunday)-6 (Saturday) (default none")
-	userUpdateCmd.Flags().String("alert-period-start-time", "nil", "The time of day when the user should start receiving alerts")
-	userUpdateCmd.Flags().String("alert-period-end-time", "nil", "The time of day when the user should stop receiving alerts")
-	userUpdateCmd.Flags().IntSlice("alert-methods-down", nil, "Preferred notification methods for down alerts")
-	userUpdateCmd.Flags().IntSlice("alert-methods-trouble", nil, "Preferred notification methods for trouble alerts")
-	userUpdateCmd.Flags().IntSlice("alert-methods-up", nil, "Preferred notification methods when service is restored")
-	userUpdateCmd.Flags().IntSlice("alert-methods-applogs", nil, "Preferred notification methods for alerts related to application logs")
-	userUpdateCmd.Flags().IntSlice("alert-methods-anomaly", nil, "Preferred notification methods for alerts when an anomaly is detected")
-	userUpdateCmd.Flags().Int("job-title", -1, "Job title of the user")
-	userUpdateCmd.Flags().String("mobile-country-code", "nil", "Country code for mobile phone number; required if voice and/or sms notifications are requested")
-	userUpdateCmd.Flags().String("mobile-phone-number", "nil", "Digits only; required if voice and/or sms notifications are requested")
-	userUpdateCmd.Flags().Int("mobile-sms-provider-id", -1, "See https://www.site24x7.com/help/api/#alerting_constants")
-	userUpdateCmd.Flags().Int("mobile-call-provider-id", -1, "See https://www.site24x7.com/help/api/#alerting_constants")
-	userUpdateCmd.Flags().Int("resource-type", -1, "See https://www.site24x7.com/help/api/#resource_type_constants")
-	userUpdateCmd.Flags().Int("statusiq-role", -1, "Role assigned to the user for accessing StatusIQ")
-	userUpdateCmd.Flags().Int("cloudspend-role", -1, "Role assigned to the user for accessing CloudSpend")
-	// Not a user property, just something to pass on the request
-	userUpdateCmd.Flags().Bool("non-eu-alert-consent", true, "Mandatory for EU DC; by passing true, you confirm your consent to transfer alert-related data")
+	userUpdateCmd.Flags().AddFlagSet(user.GetAccessorFlags())
+	userUpdateCmd.Flags().AddFlagSet(user.GetWriterFlags())
 
 	// Flags for the `user delete` command
 	// https://www.site24x7.com/help/api/#delete-user
-	userDeleteCmd.Flags().StringP("id", "i", "", "A user identifier")
-	userDeleteCmd.Flags().StringP("email", "e", "", "A user email address")
+	userDeleteCmd.Flags().AddFlagSet(user.GetAccessorFlags())
 }

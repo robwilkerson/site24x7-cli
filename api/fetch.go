@@ -92,14 +92,19 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 
 	// TODO: add a flag for dumping http requests?
-	// dump, _ := httputil.DumpRequestOut(req, true)
-	// fmt.Printf("%q\n", dump)
+	// dumpreq, _ := httputil.DumpRequestOut(req, true)
+	// println()
+	// fmt.Printf("%q\n", dumpreq)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("[Request.Fetch] ERROR: unable to execute request (%s)", err)
 	}
 	defer res.Body.Close()
+
+	// dumpres, _ := httputil.DumpResponse(res, true)
+	// println()
+	// fmt.Printf("%q\n", dumpres)
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
