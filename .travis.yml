@@ -1,0 +1,19 @@
+language: go
+go:
+  - 1.17.5
+
+install:
+  - go install
+script:
+  - go build
+  - go test ./... -cover
+
+# before_deploy: "echo \"Creating Github release for version ${TRAVIS_TAG}\""
+# deploy:
+#   provider: releases
+#   api_key:
+#     secure:
+#   file: ./site24x7
+#   skip_cleanup: true
+#   on:
+#     tags: true
