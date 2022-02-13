@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"site24x7/api"
+	"site24x7/logger"
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -27,7 +28,7 @@ var list = func() ([]api.User, error) {
 
 	var users []api.User
 	if err = json.Unmarshal(data, &users); err != nil {
-		return nil, fmt.Errorf("[impl/users.findByEmail] ERROR: Unable to  parse response data (%s)", err)
+		return nil, fmt.Errorf("[user.findByEmail] Unable to  parse response data (%s)", err)
 	}
 
 	return users, nil
@@ -47,7 +48,7 @@ var findByEmail = func(email string) (*api.User, error) {
 		}
 	}
 
-	return nil, &api.NotFoundError{Message: fmt.Sprintf("user (%s) not found", email)}
+	return nil, &api.NotFoundError{Message: fmt.Sprintf("[user.findByEmail] User (%s) not found", email)}
 }
 
 // get fetches a user either by email address or by identifier
@@ -72,7 +73,7 @@ var get = func(id string, email string) (*api.User, error) {
 
 		// Ensure that we have a fully hydrated user struct
 		if err = json.Unmarshal(data, &u); err != nil {
-			return nil, fmt.Errorf("[impl/users.Get] ERROR: Unable to  parse response data (%s)", err)
+			return nil, fmt.Errorf("[user.get] Unable to  parse response data (%s)", err)
 		}
 	}
 
@@ -82,7 +83,8 @@ var get = func(id string, email string) (*api.User, error) {
 // setProperty sets either a user property or a property on one of a user's
 // nested property structures.
 func setProperty(v interface{}, property string, value interface{}) {
-	// fmt.Printf("Setting %s; value: %v\n", property, value)
+	logger.Debug(fmt.Sprintf("Setting %s; value: %v\n", property, value))
+
 	rv := reflect.ValueOf(v)
 
 	// dereference the pointer
@@ -125,9 +127,8 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 		case "intSlice":
 			v, _ = fs.GetIntSlice(f.Name)
 		default:
-			// we can't return an error from this function, which would be
-			// nice and tidy, so just panic; we def don't want to continue
-			panic(fmt.Sprintf("[Create] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
+			// This is a problem, but I'm not sure it needs to be a fatal one
+			logger.Warn(fmt.Sprintf("[user.Create] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
 		}
 
 		// normalize property name
@@ -152,7 +153,7 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 	// Ensure that we have a fully hydrated user struct
 	var usr api.User
 	if err = json.Unmarshal(data, &usr); err != nil {
-		return nil, fmt.Errorf("[impl/users.Create] ERROR: Unable to  parse response data (%s)", err)
+		return nil, fmt.Errorf("[user.Create] Unable to  parse response data (%s)", err)
 	}
 
 	// Return json for display purposes
@@ -210,9 +211,8 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 		case "intSlice":
 			v, _ = fs.GetIntSlice(f.Name)
 		default:
-			// we can't return an error from this function, which would be
-			// nice and tidy, so just panic; we def don't want to continue
-			panic(fmt.Sprintf("[Create] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
+			// This is a problem, but I'm not sure it needs to be a fatal one
+			logger.Warn(fmt.Sprintf("[user.Update] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
 		}
 
 		// normalize property name
@@ -237,10 +237,8 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 	// Ensure that we have a fully hydrated user struct
 	var usr api.User
 	if err = json.Unmarshal(data, &usr); err != nil {
-		return nil, fmt.Errorf("[impl/users.Update] ERROR: Unable to  parse response data (%s)", err)
+		return nil, fmt.Errorf("[user.Update] Unable to  parse response data (%s)", err)
 	}
-
-	fmt.Printf("%+v\n", usr)
 
 	j, _ := json.MarshalIndent(usr, "", "    ")
 
@@ -253,6 +251,7 @@ func Delete(fs *pflag.FlagSet) error {
 
 	id, _ := fs.GetString("id")
 	email, _ := fs.GetString("email")
+
 	u, err := get(id, email)
 	if err != nil {
 		return err

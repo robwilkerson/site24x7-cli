@@ -44,7 +44,7 @@ func Configure(grantToken string) (string, error) {
 
 // Authenticate exchanges a refresh token for a short-lived access token and
 // stores the latter for use in subsequent API calls.
-func Authenticate() {
+func Authenticate() error {
 	exchangableToken := map[string]string{
 		"grantType": "refresh_token",
 		"key":       "refresh_token",
@@ -53,11 +53,12 @@ func Authenticate() {
 
 	t, err := exchangeToken(exchangableToken)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return err
 	}
 
 	os.Setenv("AUTH_ACCESS_TOKEN", t.AccessToken)
+
+	return nil
 }
 
 // exchangeToken exchanges a grant token (aka "authorization code") for a

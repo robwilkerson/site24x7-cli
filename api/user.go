@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"site24x7/logger"
 	"strings"
 )
 
@@ -111,8 +112,7 @@ func UserList() (json.RawMessage, error) {
 func UserCreate(u *User) (json.RawMessage, error) {
 	b := u.toRequestBody()
 
-	// TODO: apply a verbose context for debug/info output?
-	// fmt.Println(string(body))
+	logger.Debug(fmt.Sprintf("Request body\n%s", string(b)))
 
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
@@ -128,7 +128,7 @@ func UserCreate(u *User) (json.RawMessage, error) {
 		return nil, err
 	}
 	if res.Data == nil || res.Message != "success" {
-		// fmt.Printf("%+v", res)
+		logger.Debug(fmt.Sprintf("Response\n%+v", res))
 		if strings.HasPrefix(res.Message, "Email is already registered") {
 			// Handle a "known" error just a little bit more cleanly
 			return nil, &ConflictError{"a user with that email address already exists"}
@@ -168,8 +168,7 @@ func UserGet(userID string) (json.RawMessage, error) {
 func UserUpdate(u *User) (json.RawMessage, error) {
 	b := u.toRequestBody()
 
-	// TODO: apply a verbose context for debug/info output?
-	// fmt.Println(string(data))
+	logger.Debug(fmt.Sprintf("Request body\n%s", string(b)))
 
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), u.ID),

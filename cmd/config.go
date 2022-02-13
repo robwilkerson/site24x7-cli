@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"site24x7/api"
+	"site24x7/logger"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -60,6 +61,8 @@ at $HOME/<username>/.site24x7.yaml.`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
 		updateRefreshTokenOnly, _ := cmd.Flags().GetBool("refresh-token")
 
 		// TODO: Move work to impl package and test
@@ -75,8 +78,8 @@ at $HOME/<username>/.site24x7.yaml.`,
 			fmt.Scanln(&clientSecret)
 
 			if clientID == "" || clientSecret == "" {
-				fmt.Println("At least one empty value provided; nothing to do.")
-				fmt.Println("Without providing both a client id and secret, this tool is useless.")
+				logger.Out("At least one empty value provided; nothing to do.")
+				logger.Out("Without providing both a client id and secret, this tool is useless.")
 				os.Exit(0)
 			}
 		}
@@ -86,7 +89,7 @@ at $HOME/<username>/.site24x7.yaml.`,
 		fmt.Scanln(&grantToken)
 
 		if grantToken == "" {
-			fmt.Printf("No grant token provided; nothing to do\n")
+			logger.Out("No grant token provided; nothing to do\n")
 
 			return nil
 		}
@@ -94,7 +97,7 @@ at $HOME/<username>/.site24x7.yaml.`,
 		// Exchange the grant token for a refresh token
 		refreshToken, err := api.Configure(grantToken)
 		if err != nil {
-			fmt.Println("Unable to exchange the grant token provided for a refresh token.")
+			logger.Warn("Unable to exchange the grant token provided for a refresh token.")
 			return fmt.Errorf("%s", err)
 		}
 
@@ -108,7 +111,7 @@ at $HOME/<username>/.site24x7.yaml.`,
 			return fmt.Errorf("unable to complete configuration (%s)", err)
 		}
 
-		fmt.Println("Configuration complete!")
+		logger.Out("Configuration complete!")
 
 		return nil
 	},

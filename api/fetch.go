@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"site24x7/logger"
 	"strings"
 )
 
@@ -45,6 +47,9 @@ type EmptyApiResponse struct {
 // body contains serialized form data rather than json. The API response itself
 // also doesn't return the traditional schema so it just feels a little cleaner
 // to handle it separately from other fetches.
+//
+// This function is called before any command is executed and cannot reliably
+// use the logger.
 func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	// Weirdness #1: serialize the query string data so it can be sent as the
 	// request body. ¯\_(ツ)_/¯
@@ -55,7 +60,7 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	}
 	req.Header = r.Headers
 
-	// TODO: add a flag for dumping http requests?
+	// Uncomment to debug requests
 	// dump, _ := httputil.DumpRequestOut(req, true)
 	// fmt.Printf("%q\n", dump)
 
@@ -91,10 +96,9 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 	// Apply common headers
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 
-	// TODO: add a flag for dumping http requests?
-	// dumpreq, _ := httputil.DumpRequestOut(req, true)
-	// println()
-	// fmt.Printf("%q\n", dumpreq)
+	// TODO: only do the work if verbosity == debug?
+	dumpreq, _ := httputil.DumpRequestOut(req, true)
+	logger.Debug(fmt.Sprintf("%q\n", dumpreq))
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -102,9 +106,9 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 	}
 	defer res.Body.Close()
 
-	// dumpres, _ := httputil.DumpResponse(res, true)
-	// println()
-	// fmt.Printf("%q\n", dumpres)
+	// TODO: only do the work if verbosity == debug?
+	dumpres, _ := httputil.DumpResponse(res, true)
+	logger.Debug(fmt.Sprintf("%q\n", dumpres))
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {

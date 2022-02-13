@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -46,6 +45,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.site24x7.yaml)")
+	rootCmd.PersistentFlags().BoolP("quiet", "q", false, "Silences all output; takes precedence over any verbose setting")
+	rootCmd.PersistentFlags().CountP("verbose", "v", "Enable verbose output; supports v, vv, or vvv")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -72,7 +73,7 @@ func initConfig() {
 
 	// If a config file is found, read it in. If not, write one.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		// fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	} else {
 		viper.SafeWriteConfig()
 	}

@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"site24x7/api"
 	"site24x7/cmd/impl/user"
+	"site24x7/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -62,19 +63,21 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
 		email := args[0]
 		json, err := user.Create(email, cmd.Flags())
 		if err != nil {
 			// Handle a user already exists error nicely
 			if err, ok := err.(*api.ConflictError); ok {
-				fmt.Println(err)
+				logger.Warn(err.Error())
 				return nil
 			}
 
 			return err
 		}
 
-		fmt.Println(string(json))
+		logger.Out(string(json))
 
 		return nil
 	},
@@ -91,17 +94,19 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
 		j, err := user.Get(cmd.Flags())
 		if err != nil {
 			if err, ok := err.(*api.NotFoundError); ok {
-				fmt.Println(err)
+				logger.Warn(err.Error())
 				return nil
 			}
 
 			return err
 		}
 
-		fmt.Println(string(j))
+		logger.Out(string(j))
 
 		return nil
 	},
@@ -122,18 +127,20 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants
 Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants`,
 	Aliases: []string{"modify"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
 		json, err := user.Update(cmd.Flags())
 		if err != nil {
 			// Handle a known error just a bit more cleanly
 			if err, ok := err.(*api.NotFoundError); ok {
-				fmt.Println(err)
+				logger.Warn(err.Error())
 				return nil
 			}
 
 			return err
 		}
 
-		fmt.Println(string(json))
+		logger.Out(string(json))
 
 		return nil
 	},
@@ -150,12 +157,14 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"del", "rm", "remove"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
 		err := user.Delete(cmd.Flags())
 		if err != nil {
 			return err
 		}
 
-		fmt.Println("User successfully deleted!")
+		logger.Out("User successfully deleted!")
 
 		return nil
 	},
@@ -168,12 +177,14 @@ var userListCmd = &cobra.Command{
 	Long:    `Retrieves a list of all users.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
 		json, err := user.List()
 		if err != nil {
 			return err
 		}
 
-		fmt.Println(string(json))
+		logger.Out(string(json))
 
 		return nil
 	},

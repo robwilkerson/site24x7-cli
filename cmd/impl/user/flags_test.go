@@ -1,9 +1,7 @@
 package user
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/spf13/pflag"
@@ -324,7 +322,6 @@ func Test_validateWriters(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		fmt.Println(strings.ToUpper(tt.name))
 		t.Run(tt.name, func(t *testing.T) {
 			// No need to check whether `recover()` is nil. Just turn off the panic.
 			defer func() { recover() }()
