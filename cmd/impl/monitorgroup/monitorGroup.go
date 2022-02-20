@@ -12,74 +12,27 @@ import (
 
 // Alias upstream functions for mocking
 
-// var apiUserList = api.UserList
-// var apiUserGet = api.UserGet
-
+var apiMonitorGroupList = api.MonitorGroupList
+var apiMonitorGroupGet = api.MonitorGroupGet
 var apiMonitorGroupCreate = api.MonitorGroupCreate
 
 // var apiUserUpdate = api.UserUpdate
 // var apiUserDelete = api.UserDelete
 
 // list returns a slice containing all users on the account
-// var list = func() ([]api.User, error) {
-// 	data, err := apiUserList()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+var list = func() ([]api.MonitorGroup, error) {
+	data, err := apiMonitorGroupList()
+	if err != nil {
+		return nil, err
+	}
 
-// 	var users []api.User
-// 	if err = json.Unmarshal(data, &users); err != nil {
-// 		return nil, fmt.Errorf("[user.findByEmail] Unable to  parse response data (%s)", err)
-// 	}
+	var mongrus []api.MonitorGroup
+	if err = json.Unmarshal(data, &mongrus); err != nil {
+		return nil, fmt.Errorf("[monitorgroup.list] Unable to  parse response data (%s)", err)
+	}
 
-// 	return users, nil
-// }
-
-// findByEmail returns a user with a given email address
-// var findByEmail = func(email string) (*api.User, error) {
-// 	users, err := list()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// Extract the one with a matching email address
-// 	for _, u := range users {
-// 		if strings.EqualFold(u.EmailAddress, email) {
-// 			return &u, nil
-// 		}
-// 	}
-
-// 	return nil, &api.NotFoundError{Message: fmt.Sprintf("[user.findByEmail] User (%s) not found", email)}
-// }
-
-// get fetches a user either by email address or by identifier
-// var get = func(id string, email string) (*api.User, error) {
-// 	var u api.User
-
-// 	if email != "" {
-// 		// Fetch by email address
-// 		r, err := findByEmail(email)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		// Dereference the returned pointer into our user var
-// 		u = *r
-// 	} else {
-// 		// Fetch by user ID - a.k.a, the official way
-// 		data, err := apiUserGet(id)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-
-// 		// Ensure that we have a fully hydrated user struct
-// 		if err = json.Unmarshal(data, &u); err != nil {
-// 			return nil, fmt.Errorf("[user.get] Unable to  parse response data (%s)", err)
-// 		}
-// 	}
-
-// 	return &u, nil
-// }
+	return mongrus, nil
+}
 
 // setProperty sets either a user property or a property on one of a user's
 // nested property structures.
@@ -147,21 +100,16 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 }
 
 // Get is the implementation of the `user get` command
-// func Get(fs *pflag.FlagSet) ([]byte, error) {
-// 	validateAccessors(fs)
+func Get(id string) ([]byte, error) {
+	u, err := apiMonitorGroupGet(id)
+	if err != nil {
+		return nil, err
+	}
 
-// 	id, _ := fs.GetString("id")
-// 	email, _ := fs.GetString("email")
+	j, _ := json.MarshalIndent(u, "", "    ")
 
-// 	u, err := get(id, email)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	j, _ := json.MarshalIndent(u, "", "    ")
-
-// 	return j, nil
-// }
+	return j, nil
+}
 
 // Update is the implementation of the `user update` command
 // func Update(fs *pflag.FlagSet) ([]byte, error) {
@@ -249,13 +197,13 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 // }
 
 // List is the implementation of the `user list` command
-// func List() ([]byte, error) {
-// 	users, err := list()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+func List() ([]byte, error) {
+	mongrus, err := list()
+	if err != nil {
+		return nil, err
+	}
 
-// 	j, _ := json.MarshalIndent(users, "", "    ")
+	j, _ := json.MarshalIndent(mongrus, "", "    ")
 
-// 	return j, nil
-// }
+	return j, nil
+}

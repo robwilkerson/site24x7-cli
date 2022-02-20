@@ -75,9 +75,65 @@ var monitorGroupCreateCmd = &cobra.Command{
 	},
 }
 
+// userGetCmd represents the `monitor_group get` subcommand
+var monitorGroupGetCmd = &cobra.Command{
+	Use:     "get <id>",
+	Short:   "Retrieves a specific monitor group",
+	Long:    `Retrieves a specific monitor group.`,
+	Aliases: []string{"fetch", "retrieve", "read"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		expectedArgLen := 1
+		actualArgLen := len(args)
+		if actualArgLen != expectedArgLen {
+			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
+		}
+
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
+		id := args[0]
+		j, err := monitorgroup.Get(id)
+		if err != nil {
+			if err, ok := err.(*api.NotFoundError); ok {
+				logger.Warn(err.Error())
+				return nil
+			}
+
+			return err
+		}
+
+		logger.Out(string(j))
+
+		return nil
+	},
+}
+
+// monitorGroupListCmd represents the `monitor_group list` subcommand
+var monitorGroupListCmd = &cobra.Command{
+	Use:     "list",
+	Short:   "Retrieves a list of all monitor groups",
+	Long:    `Retrieves a list of all monitor groups.`,
+	Aliases: []string{"ls"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
+		json, err := monitorgroup.List()
+		if err != nil {
+			return err
+		}
+
+		logger.Out(string(json))
+
+		return nil
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(monitorGroupCmd)
 	monitorGroupCmd.AddCommand(monitorGroupCreateCmd)
+	monitorGroupCmd.AddCommand(monitorGroupListCmd)
 
 	// Flags for the `user create` command
 	// https://www.site24x7.com/help/api/#create-new-user

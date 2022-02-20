@@ -7,7 +7,7 @@ import (
 )
 
 // GetWriterFlags returns the default flagset that's passed to commands that
-// write information to a user account.
+// write information.
 func GetWriterFlags() *pflag.FlagSet {
 	writerFlags := pflag.NewFlagSet("writerFlags", pflag.ExitOnError)
 

@@ -20,6 +20,7 @@ type MonitorGroup struct {
 	SuppressAlert        bool     `json:"suppress_alert"`
 }
 
+// MonitorGroupRequestBody identifies the HTTP request body structure
 type MonitorGroupRequestBody struct {
 	Name                 string   `json:"display_name"`
 	Description          string   `json:"description"`
@@ -29,7 +30,7 @@ type MonitorGroupRequestBody struct {
 	SuppressAlert        bool     `json:"suppress_alert"`
 }
 
-// MonitorGroup.toRequestBody performs a struct conversion
+// toRequestBody performs a struct conversion
 func (mg *MonitorGroup) toRequestBody() []byte {
 	var b MonitorGroupRequestBody
 	tmp, _ := json.Marshal(mg)
@@ -39,47 +40,28 @@ func (mg *MonitorGroup) toRequestBody() []byte {
 	return body
 }
 
-// getMonitorGroups returns all existing monitor groups
-// func getMonitorGroups() ([]MonitorGroup, error) {
-// 	req := Request{
-// 		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
-// 		Method:   "GET",
-// 		Headers: http.Header{
-// 			"Accept": {"application/json; version=2.1"},
-// 		},
-// 		Body: nil,
-// 	}
-// 	req.Headers.Set(httpHeader())
-// 	res, err := req.Fetch()
-// 	if err != nil {
-// 		return nil, err
-// 	}
+// MonitorGroupList returns all monitor groups
+func MonitorGroupList() (json.RawMessage, error) {
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
+		Method:   "GET",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.1"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return nil, err
+	}
 
-// 	var groups []MonitorGroup
-// 	err = json.Unmarshal(res.Data, &groups)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("[getMonitorGroups] ERROR: Unable to  parse response data (%s)", err)
-// 	}
+	if res.Message != "success" || res.Data == nil {
+		return nil, fmt.Errorf("Error retrieving monitor groups; message: %s", res.Message)
+	}
 
-// 	return groups, nil
-// }
-
-// MonitorGroupExists determines whether a given user, identified by name,
-// already exists in the account
-// func MonitorGroupExists(name string) (bool, error) {
-// 	groups, err := getMonitorGroups()
-// 	if err != nil {
-// 		return false, err
-// 	}
-
-// 	for _, g := range groups {
-// 		if strings.EqualFold(g.Name, name) {
-// 			return true, nil
-// 		}
-// 	}
-
-// 	return false, nil
-// }
+	return res.Data, nil
+}
 
 // Create establishes a new monitor group if a group with the same name does
 // not already exist
@@ -105,6 +87,30 @@ func MonitorGroupCreate(mg *MonitorGroup) (json.RawMessage, error) {
 		logger.Debug(fmt.Sprintf("Response\n%+v", res))
 
 		return nil, fmt.Errorf("[MonitorGroup.Create] API Response error; %s", res.Message)
+	}
+
+	return res.Data, nil
+}
+
+// UserGet fetches an account user
+func MonitorGroupGet(id string) (json.RawMessage, error) {
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/monitor_groups/%s", os.Getenv("API_BASE_URL"), id),
+		Method:   "GET",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return nil, err
+	}
+
+	if res.Data == nil {
+		// Handle a "known" error just a little bit more cleanly
+		return nil, &NotFoundError{"monitor group not found"}
 	}
 
 	return res.Data, nil
