@@ -92,6 +92,9 @@ func setProperty(v interface{}, property string, value interface{}) {
 
 	// lookup the field by name and set the new value
 	f := rv.FieldByName(property)
+
+	// TODO: check f.IsValid() before setting; see monitorgroup.setProperty()
+
 	f.Set(reflect.ValueOf(value))
 }
 

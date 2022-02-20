@@ -170,7 +170,7 @@ usability.`,
 	},
 }
 
-// userGetCmd represents the `user list` subcommand
+// userListCmd represents the `user list` subcommand
 var userListCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "Retrieves a list of all users",

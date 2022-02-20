@@ -7,9 +7,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-//
-var WriterFlags *pflag.FlagSet
-
 // nonUserFlags identifies command line flags that might be passed, but do not
 // map to user properties and should be ignored when hydrating a user struct.
 var nonUserFlags = map[string]int{
@@ -178,7 +175,7 @@ func validateWriters(fs *pflag.FlagSet) {
 	})
 }
 
-// normalizeName maps a flag name to a user property names
+// normalizeName maps a flag name to a property name
 func normalizeName(f *pflag.Flag) string {
 	switch f.Name {
 	// for this one, the flag matches the Site24x7 terminology, but internally

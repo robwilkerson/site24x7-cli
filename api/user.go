@@ -76,6 +76,7 @@ type User struct {
 	Zuid                string                 `json:"zuid"`
 }
 
+// toRequestBody performs a struct conversion
 func (u *User) toRequestBody() []byte {
 	var b UserRequestBody
 	tmp, _ := json.Marshal(u)
