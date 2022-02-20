@@ -34,8 +34,7 @@ var list = func(withSubgroups bool) ([]api.MonitorGroup, error) {
 	return mongrus, nil
 }
 
-// setProperty sets either a user property or a property on one of a user's
-// nested property structures.
+// setProperty sets a struct property
 func setProperty(v interface{}, property string, value interface{}) {
 	logger.Debug(fmt.Sprintf("Setting %s; value: %v", property, value))
 
@@ -55,7 +54,7 @@ func setProperty(v interface{}, property string, value interface{}) {
 
 }
 
-// Create is the implementation of the `user create` command
+// Create is the implementation of the `monitor_group create` command
 func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	mg := &api.MonitorGroup{Name: name}
 	fs.VisitAll(func(f *pflag.Flag) {
@@ -99,14 +98,22 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	return j, nil
 }
 
-// Get is the implementation of the `user get` command
+// Get is the implementation of the `monitor_group get` command
 func Get(id string, fs *pflag.FlagSet) ([]byte, error) {
-	u, err := apiMonitorGroupGet(id)
+	data, err := apiMonitorGroupGet(id)
 	if err != nil {
 		return nil, err
 	}
 
-	j, _ := json.MarshalIndent(u, "", "    ")
+	// Ensure that we have a fully hydrated user struct
+	var mg api.MonitorGroup
+	if err = json.Unmarshal(data, &mg); err != nil {
+		return nil, fmt.Errorf("[monitorGroup.Get] Unable to  parse response data (%s)", err)
+	}
+
+	fmt.Printf("%+v", mg)
+
+	j, _ := json.MarshalIndent(mg, "", "    ")
 
 	return j, nil
 }
