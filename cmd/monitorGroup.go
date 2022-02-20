@@ -17,8 +17,9 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 	"site24x7/api"
+	"site24x7/cmd/impl/monitorgroup"
+	"site24x7/logger"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ var monitorGroupCmd = &cobra.Command{
 	Use:     "monitor_group <command>",
 	Short:   "Performs monitor group actions",
 	Long:    `Performs monitor group actions.`,
-	Aliases: []string{"mg", "mgroup"},
+	Aliases: []string{"mg", "mongroup", "mgroup", "mongru"},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// authenticate before all non-config commands
 		api.Authenticate()
@@ -53,13 +54,24 @@ var monitorGroupCreateCmd = &cobra.Command{
 
 		return nil
 	},
-	Run: func(cmd *cobra.Command, args []string) {
-		mg := api.MonitorGroup{Name: args[0]}
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
 
-		if err := mg.Create(); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+		name := args[0]
+		json, err := monitorgroup.Create(name, cmd.Flags())
+		if err != nil {
+			// Handle a user already exists error nicely
+			if err, ok := err.(*api.ConflictError); ok {
+				logger.Warn(err.Error())
+				return nil
+			}
+
+			return err
 		}
+
+		logger.Out(string(json))
+
+		return nil
 	},
 }
 
@@ -67,13 +79,7 @@ func init() {
 	rootCmd.AddCommand(monitorGroupCmd)
 	monitorGroupCmd.AddCommand(monitorGroupCreateCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// monitorGroupCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// monitorGroupCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Flags for the `user create` command
+	// https://www.site24x7.com/help/api/#create-new-user
+	monitorGroupCreateCmd.Flags().AddFlagSet(monitorgroup.GetWriterFlags())
 }

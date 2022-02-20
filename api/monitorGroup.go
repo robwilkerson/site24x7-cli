@@ -5,102 +5,107 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
+	"site24x7/logger"
 )
 
 // MonitorGroup contains the data returned from any request for monitor group
 // information.
 type MonitorGroup struct {
-	Id                    string   `json:"group_id"`
-	Name                  string   `json:"display_name"`
-	Description           string   `json:"description"`
-	GroupType             int      `json:"group_type"`
-	Monitors              []string `json:"monitors"`
-	SelectionType         int      `json:"selection_type"`
-	DependencyResourceIds []string `json:"dependency_resource_ids"`
-	SuppressAlert         bool     `json:"suppress_alert"`
-	HealthThresholdCount  int      `json:"health_threshold_count"`
-	Tags                  []string `json:"-"`
+	ID                   string   `json:"group_id"`
+	Name                 string   `json:"display_name"`
+	Description          string   `json:"description"`
+	Monitors             []string `json:"monitors"`
+	HealthThresholdCount int      `json:"health_threshold_count"`
+	DependentMonitors    []string `json:"dependency_resource_ids"`
+	SuppressAlert        bool     `json:"suppress_alert"`
+}
+
+type MonitorGroupRequestBody struct {
+	Name                 string   `json:"display_name"`
+	Description          string   `json:"description"`
+	Monitors             []string `json:"monitors"`
+	HealthThresholdCount int      `json:"health_threshold_count"`
+	DependentMonitors    []string `json:"dependency_resource_ids"`
+	SuppressAlert        bool     `json:"suppress_alert"`
+}
+
+// MonitorGroup.toRequestBody performs a struct conversion
+func (mg *MonitorGroup) toRequestBody() []byte {
+	var b MonitorGroupRequestBody
+	tmp, _ := json.Marshal(mg)
+	json.Unmarshal(tmp, &b)
+	body, _ := json.Marshal(b)
+
+	return body
 }
 
 // getMonitorGroups returns all existing monitor groups
-func getMonitorGroups() ([]MonitorGroup, error) {
-	req := Request{
-		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
-		Method:   "GET",
-		Headers: http.Header{
-			"Accept": {"application/json; version=2.1"},
-		},
-		Body: nil,
-	}
-	req.Headers.Set(httpHeader())
-	res, err := req.Fetch()
-	if err != nil {
-		return nil, err
-	}
+// func getMonitorGroups() ([]MonitorGroup, error) {
+// 	req := Request{
+// 		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
+// 		Method:   "GET",
+// 		Headers: http.Header{
+// 			"Accept": {"application/json; version=2.1"},
+// 		},
+// 		Body: nil,
+// 	}
+// 	req.Headers.Set(httpHeader())
+// 	res, err := req.Fetch()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var groups []MonitorGroup
-	err = json.Unmarshal(res.Data, &groups)
-	if err != nil {
-		return nil, fmt.Errorf("[getMonitorGroups] ERROR: Unable to  parse response data (%s)", err)
-	}
+// 	var groups []MonitorGroup
+// 	err = json.Unmarshal(res.Data, &groups)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("[getMonitorGroups] ERROR: Unable to  parse response data (%s)", err)
+// 	}
 
-	return groups, nil
-}
+// 	return groups, nil
+// }
 
 // MonitorGroupExists determines whether a given user, identified by name,
 // already exists in the account
-func MonitorGroupExists(name string) (bool, error) {
-	groups, err := getMonitorGroups()
-	if err != nil {
-		return false, err
-	}
+// func MonitorGroupExists(name string) (bool, error) {
+// 	groups, err := getMonitorGroups()
+// 	if err != nil {
+// 		return false, err
+// 	}
 
-	for _, g := range groups {
-		if strings.EqualFold(g.Name, name) {
-			return true, nil
-		}
-	}
+// 	for _, g := range groups {
+// 		if strings.EqualFold(g.Name, name) {
+// 			return true, nil
+// 		}
+// 	}
 
-	return false, nil
-}
+// 	return false, nil
+// }
 
 // Create establishes a new monitor group if a group with the same name does
 // not already exist
-func (mg *MonitorGroup) Create() error {
-	exists, err := MonitorGroupExists(mg.Name)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return &ConflictError{fmt.Sprintf("[MonitorGroup.Create] CONFLICTERROR: a monitor group with this name (%s) already exists on this account", mg.Name)}
-	}
+func MonitorGroupCreate(mg *MonitorGroup) (json.RawMessage, error) {
+	b := mg.toRequestBody()
 
-	// TODO: add optional data from flags
-	data, _ := json.Marshal(map[string]interface{}{
-		"display_name":           mg.Name,
-		"health_threshold_count": 0,
-	})
+	logger.Debug(fmt.Sprintf("Request body\n%s", string(b)))
+
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
 		Method:   "POST",
 		Headers: http.Header{
 			"Accept": {"application/json; version=2.1"},
 		},
-		Body: data,
+		Body: b,
 	}
 	req.Headers.Set(httpHeader())
 	res, err := req.Fetch()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if res.Message != "success" {
-		return fmt.Errorf("[MonitorGroup.Create] ERROR: There was a problem muting alerts for %s (%s)", mg.Name, res.Message)
+	if res.Data == nil || res.Message != "success" {
+		logger.Debug(fmt.Sprintf("Response\n%+v", res))
+
+		return nil, fmt.Errorf("[MonitorGroup.Create] API Response error; %s", res.Message)
 	}
 
-	if err = json.Unmarshal(res.Data, &mg); err != nil {
-		return fmt.Errorf("[MonitorGroup.Create] ERROR: Unable to  parse response data (%s)", err)
-	}
-
-	return nil
+	return res.Data, nil
 }
