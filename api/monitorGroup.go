@@ -4,20 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"site24x7/logger"
+	"strconv"
 )
 
 // MonitorGroup contains the data returned from any request for monitor group
 // information.
 type MonitorGroup struct {
-	ID                   string   `json:"group_id"`
-	Name                 string   `json:"display_name"`
-	Description          string   `json:"description"`
-	Monitors             []string `json:"monitors"`
-	HealthThresholdCount int      `json:"health_threshold_count"`
-	DependentMonitors    []string `json:"dependency_resource_ids"`
-	SuppressAlert        bool     `json:"suppress_alert"`
+	ID                   string         `json:"group_id"`
+	Name                 string         `json:"display_name"`
+	Description          string         `json:"description"`
+	Monitors             []string       `json:"monitors"`
+	HealthThresholdCount int            `json:"health_threshold_count"`
+	DependentMonitors    []string       `json:"dependency_resource_ids"`
+	SuppressAlert        bool           `json:"suppress_alert"`
+	GroupType            int            `json:"group_type,omitempty"` // https://www.site24x7.com/help/api/#monitor_group_type_constants
+	Type                 int            `json:"type,omitempty"`       // https://www.site24x7.com/help/api/#monitor_group_resource_type_constants
+	Tags                 []string       `json:"tags,omitempty"`
+	Subgroups            []MonitorGroup `json:"subgroups,omitempty"`
 }
 
 // MonitorGroupRequestBody identifies the HTTP request body structure
@@ -41,7 +47,7 @@ func (mg *MonitorGroup) toRequestBody() []byte {
 }
 
 // MonitorGroupList returns all monitor groups
-func MonitorGroupList() (json.RawMessage, error) {
+func MonitorGroupList(withSubgroups bool) (json.RawMessage, error) {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
 		Method:   "GET",
@@ -49,6 +55,9 @@ func MonitorGroupList() (json.RawMessage, error) {
 			"Accept": {"application/json; version=2.1"},
 		},
 		Body: nil,
+		QueryString: url.Values{
+			"subgroup_required": {strconv.FormatBool(withSubgroups)},
+		},
 	}
 	req.Headers.Set(httpHeader())
 	res, err := req.Fetch()

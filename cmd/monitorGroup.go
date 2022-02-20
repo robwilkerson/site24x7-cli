@@ -94,7 +94,7 @@ var monitorGroupGetCmd = &cobra.Command{
 		logger.SetVerbosity(cmd.Flags())
 
 		id := args[0]
-		j, err := monitorgroup.Get(id)
+		j, err := monitorgroup.Get(id, cmd.Flags())
 		if err != nil {
 			if err, ok := err.(*api.NotFoundError); ok {
 				logger.Warn(err.Error())
@@ -119,7 +119,7 @@ var monitorGroupListCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.SetVerbosity(cmd.Flags())
 
-		json, err := monitorgroup.List()
+		json, err := monitorgroup.List(cmd.Flags())
 		if err != nil {
 			return err
 		}
@@ -133,9 +133,13 @@ var monitorGroupListCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(monitorGroupCmd)
 	monitorGroupCmd.AddCommand(monitorGroupCreateCmd)
+	monitorGroupCmd.AddCommand(monitorGroupGetCmd)
 	monitorGroupCmd.AddCommand(monitorGroupListCmd)
 
-	// Flags for the `user create` command
+	// Flags for the `monitor_group create` command
 	// https://www.site24x7.com/help/api/#create-new-user
 	monitorGroupCreateCmd.Flags().AddFlagSet(monitorgroup.GetWriterFlags())
+
+	// Flags for the `monitor_group list command`
+	monitorGroupListCmd.Flags().Bool("with-subgroups", false, "When true, returns all subgroups")
 }

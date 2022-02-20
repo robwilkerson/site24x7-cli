@@ -20,8 +20,8 @@ var apiMonitorGroupCreate = api.MonitorGroupCreate
 // var apiUserDelete = api.UserDelete
 
 // list returns a slice containing all users on the account
-var list = func() ([]api.MonitorGroup, error) {
-	data, err := apiMonitorGroupList()
+var list = func(withSubgroups bool) ([]api.MonitorGroup, error) {
+	data, err := apiMonitorGroupList(withSubgroups)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 }
 
 // Get is the implementation of the `user get` command
-func Get(id string) ([]byte, error) {
+func Get(id string, fs *pflag.FlagSet) ([]byte, error) {
 	u, err := apiMonitorGroupGet(id)
 	if err != nil {
 		return nil, err
@@ -197,8 +197,10 @@ func Get(id string) ([]byte, error) {
 // }
 
 // List is the implementation of the `user list` command
-func List() ([]byte, error) {
-	mongrus, err := list()
+func List(fs *pflag.FlagSet) ([]byte, error) {
+	sg, _ := fs.GetBool("with-subgroups")
+
+	mongrus, err := list(sg)
 	if err != nil {
 		return nil, err
 	}
