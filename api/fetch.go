@@ -87,9 +87,14 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 
 // Fetch calls a Site24x7 API and returns the response.
 func (r *Request) Fetch() (*ApiResponse, error) {
-	req, err := http.NewRequest(r.Method, r.Endpoint, bytes.NewReader(r.Body))
-	if err != nil {
-		return nil, fmt.Errorf("[Request.Fetch] ERROR: Unable to create request (%s)", err)
+	body := bytes.NewReader(r.Body)
+	qs := strings.NewReader(r.QueryString.Encode())
+
+	var req *http.Request
+	if r.Method == "GET" {
+		req, _ = http.NewRequest(r.Method, r.Endpoint, qs)
+	} else {
+		req, _ = http.NewRequest(r.Method, r.Endpoint, body)
 	}
 	req.Header = r.Headers
 
