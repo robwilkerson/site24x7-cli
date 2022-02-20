@@ -9,6 +9,7 @@ import (
 
 // nonUserFlags identifies command line flags that might be passed, but do not
 // map to user properties and should be ignored when hydrating a user struct.
+// TODO: this can be killed once IsValid() is invoked per another TODO
 var nonUserFlags = map[string]int{
 	// Sent as a flag to be used as an accessor
 	"id":    0,

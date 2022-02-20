@@ -36,7 +36,7 @@ type MobileSettings struct {
 	CallProviderID int    `json:"call_provider_id"`
 }
 
-// UserRequestBody
+// UserRequestBody identifies the HTTP request body structure
 type UserRequestBody struct {
 	Name                  string                 `json:"display_name"`
 	EmailAddress          string                 `json:"email_address"`
@@ -142,9 +142,9 @@ func UserCreate(u *User) (json.RawMessage, error) {
 }
 
 // UserGet fetches an account user
-func UserGet(userID string) (json.RawMessage, error) {
+func UserGet(id string) (json.RawMessage, error) {
 	req := Request{
-		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), userID),
+		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), id),
 		Method:   "GET",
 		Headers: http.Header{
 			"Accept": {"application/json; version=2.0"},
