@@ -16,8 +16,8 @@ var apiMonitorGroupList = api.MonitorGroupList
 var apiMonitorGroupGet = api.MonitorGroupGet
 var apiMonitorGroupCreate = api.MonitorGroupCreate
 
-// var apiUserUpdate = api.UserUpdate
-// var apiUserDelete = api.UserDelete
+// var apiMonitorGroupUpdate = api.UserUpdate
+var apiMonitorGroupDelete = api.MonitorGroupDelete
 
 // list returns a slice containing all users on the account
 var list = func(withSubgroups bool) ([]api.MonitorGroup, error) {
@@ -184,24 +184,15 @@ func Get(id string, fs *pflag.FlagSet) ([]byte, error) {
 // 	return j, nil
 // }
 
-// Delete is the implementation of the `user delete` command
-// func Delete(fs *pflag.FlagSet) error {
-// 	validateAccessors(fs)
+// Delete is the implementation of the `monitor_group delete` command
+func Delete(id string, fs *pflag.FlagSet) error {
+	err := apiMonitorGroupDelete(id)
+	if err != nil {
+		return err
+	}
 
-// 	id, _ := fs.GetString("id")
-// 	email, _ := fs.GetString("email")
-
-// 	u, err := get(id, email)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if err := apiUserDelete(u.ID); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
+	return nil
+}
 
 // List is the implementation of the `user list` command
 func List(fs *pflag.FlagSet) ([]byte, error) {

@@ -72,7 +72,7 @@ func MonitorGroupList(withSubgroups bool) (json.RawMessage, error) {
 	return res.Data, nil
 }
 
-// Create establishes a new monitor group if a group with the same name does
+// MonitorGroupCreate establishes a new monitor group if a group with the same name does
 // not already exist
 func MonitorGroupCreate(mg *MonitorGroup) (json.RawMessage, error) {
 	b := mg.toRequestBody()
@@ -101,7 +101,7 @@ func MonitorGroupCreate(mg *MonitorGroup) (json.RawMessage, error) {
 	return res.Data, nil
 }
 
-// UserGet fetches an account user
+// MonitorGroupGet fetches a monitor group
 func MonitorGroupGet(id string) (json.RawMessage, error) {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/monitor_groups/%s", os.Getenv("API_BASE_URL"), id),
@@ -123,4 +123,26 @@ func MonitorGroupGet(id string) (json.RawMessage, error) {
 	}
 
 	return res.Data, nil
+}
+
+// MonitorGroupDelete removes a monitor group
+func MonitorGroupDelete(id string) error {
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/monitor_groups/%s", os.Getenv("API_BASE_URL"), id),
+		Method:   "DELETE",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return err
+	}
+	if res.Message != "success" {
+		return fmt.Errorf("[MonitorGroupDelete] API Response error; %s", res.Message)
+	}
+
+	return nil
 }

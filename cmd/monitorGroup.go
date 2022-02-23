@@ -110,6 +110,37 @@ var monitorGroupGetCmd = &cobra.Command{
 	},
 }
 
+// monitorGroupDeleteCmd represents the `monitor_group delete` subcommand
+var monitorGroupDeleteCmd = &cobra.Command{
+	Use:   "delete <id>",
+	Short: "Deletes a specific monitor group",
+	Long: `Deletes a specific monitor group.`,
+	Aliases: []string{"del", "rm", "remove"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		expectedArgLen := 1
+		actualArgLen := len(args)
+		if actualArgLen != expectedArgLen {
+			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
+		}
+
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
+		id := args[0]
+
+		err := monitorgroup.Delete(id, cmd.Flags())
+		if err != nil {
+			return err
+		}
+
+		logger.Out("Monitor group successfully deleted!")
+
+		return nil
+	},
+}
+
 // monitorGroupListCmd represents the `monitor_group list` subcommand
 var monitorGroupListCmd = &cobra.Command{
 	Use:     "list",
@@ -134,6 +165,7 @@ func init() {
 	rootCmd.AddCommand(monitorGroupCmd)
 	monitorGroupCmd.AddCommand(monitorGroupCreateCmd)
 	monitorGroupCmd.AddCommand(monitorGroupGetCmd)
+	monitorGroupCmd.AddCommand(monitorGroupDeleteCmd)
 	monitorGroupCmd.AddCommand(monitorGroupListCmd)
 
 	// Flags for the `monitor_group create` command
