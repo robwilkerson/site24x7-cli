@@ -632,7 +632,7 @@ func TestDelete(t *testing.T) {
 				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if tt.wantErr && !strings.Contains(err.Error(), tt.wantErrMsg) {
-				t.Errorf("Create() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
+				t.Errorf("Delete() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
 			}
 		})
 	}

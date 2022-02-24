@@ -271,3 +271,56 @@ func TestGet(t *testing.T) {
 		})
 	}
 }
+
+func TestDelete(t *testing.T) {
+	type args struct {
+		id string
+		fs *pflag.FlagSet
+	}
+
+	mockFlagSet := pflag.NewFlagSet("Testing", pflag.PanicOnError)
+
+	tests := []struct {
+		name        string
+		args        args
+		apiDeleteFn func(id string) error
+		wantErr     bool
+		wantErrMsg  string
+	}{
+		{
+			name: "Handles an API error",
+			args: args{
+				id: "1001001SOS",
+				fs: mockFlagSet,
+			},
+			apiDeleteFn: func(id string) error {
+				return errors.New("testing!")
+			},
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Returns successfully",
+			args: args{
+				id: "1001001SOS",
+				fs: mockFlagSet,
+			},
+			apiDeleteFn: func(id string) error {
+				return nil
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		apiMonitorGroupDelete = tt.apiDeleteFn
+		t.Run(tt.name, func(t *testing.T) {
+			err := Delete(tt.args.id, tt.args.fs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Delete() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr && !strings.Contains(err.Error(), tt.wantErrMsg) {
+				t.Errorf("Delete() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
+			}
+		})
+	}
+}
