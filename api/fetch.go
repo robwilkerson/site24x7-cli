@@ -56,7 +56,7 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	body := strings.NewReader(r.QueryString.Encode())
 	req, err := http.NewRequest(r.Method, r.Endpoint, body)
 	if err != nil {
-		return nil, fmt.Errorf("[Token.Fetch] ERROR: Unable to create request (%s)", err)
+		return nil, fmt.Errorf("[api.FetchAuthToken] ERROR: Unable to create request (%s)", err)
 	}
 	req.Header = r.Headers
 
@@ -66,20 +66,20 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("[Token.Fetch] ERROR: unable to execute request (%s)", err)
+		return nil, fmt.Errorf("[api.FetchAuthToken] ERROR: unable to execute request (%s)", err)
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("[Token.Fetch] ERROR: Unable to read response body (%s)", err)
+		return nil, fmt.Errorf("[api.FetchAuthToken] ERROR: Unable to read response body (%s)", err)
 	}
 
 	// Weirdness #2: the endpoint returns a token, but not in ApiResponse.Data
 	// like, well, every other endpoint I've tried thus far.
 	var t AuthToken
 	if err := json.Unmarshal(b, &t); err != nil {
-		return nil, fmt.Errorf("[Token.Fetch] ERROR: Unable to  parse response body (%s)", err)
+		return nil, fmt.Errorf("[api.FetchAuthToken] ERROR: Unable to  parse response body (%s)", err)
 	}
 
 	return &t, nil
@@ -103,26 +103,26 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 
 	// TODO: only do the work if verbosity == debug?
 	dumpreq, _ := httputil.DumpRequestOut(req, true)
-	logger.Debug(fmt.Sprintf("%q\n", dumpreq))
+	logger.Debug(fmt.Sprintf("[api.Fetch] Request: %q\n", dumpreq))
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("[Request.Fetch] ERROR: unable to execute request (%s)", err)
+		return nil, fmt.Errorf("[api.Fetch] ERROR: unable to execute request (%s)", err)
 	}
 	defer res.Body.Close()
 
 	// TODO: only do the work if verbosity == debug?
 	dumpres, _ := httputil.DumpResponse(res, true)
-	logger.Debug(fmt.Sprintf("%q\n", dumpres))
+	logger.Debug(fmt.Sprintf("[api.Fetch] Response: %q\n", dumpres))
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, fmt.Errorf("[Request.Fetch] ERROR: Unable to read response body (%s)", err)
+		return nil, fmt.Errorf("[api.Fetch] ERROR: Unable to read response body (%s)", err)
 	}
 
 	var ar ApiResponse
 	if err := json.Unmarshal(b, &ar); err != nil {
-		return nil, fmt.Errorf("[Request.Fetch] ERROR: Unable to  parse response body (%s)", err)
+		return nil, fmt.Errorf("[api.Fetch] ERROR: Unable to  parse response body (%s)", err)
 	}
 
 	return &ar, nil

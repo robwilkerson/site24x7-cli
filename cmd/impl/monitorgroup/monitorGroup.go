@@ -15,8 +15,7 @@ import (
 var apiMonitorGroupList = api.MonitorGroupList
 var apiMonitorGroupGet = api.MonitorGroupGet
 var apiMonitorGroupCreate = api.MonitorGroupCreate
-
-// var apiMonitorGroupUpdate = api.UserUpdate
+var apiMonitorGroupUpdate = api.MonitorGroupUpdate
 var apiMonitorGroupDelete = api.MonitorGroupDelete
 
 // list returns a slice containing all users on the account
@@ -34,9 +33,26 @@ var list = func(withSubgroups bool) ([]api.MonitorGroup, error) {
 	return mongrus, nil
 }
 
+// get fetches a monitor group
+var get = func(id string) (*api.MonitorGroup, error) {
+	var mg api.MonitorGroup
+
+	data, err := apiMonitorGroupGet(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ensure that we have a fully hydrated struct
+	if err = json.Unmarshal(data, &mg); err != nil {
+		return nil, fmt.Errorf("[monitorgroup.get] Unable to  parse response data (%s)", err)
+	}
+
+	return &mg, nil
+}
+
 // setProperty sets a struct property
 func setProperty(v interface{}, property string, value interface{}) {
-	logger.Debug(fmt.Sprintf("Setting %s; value: %v", property, value))
+	logger.Debug(fmt.Sprintf("[monitorgroup.setProperty] Setting %s; value: %v", property, value))
 
 	rv := reflect.ValueOf(v)
 
@@ -49,9 +65,8 @@ func setProperty(v interface{}, property string, value interface{}) {
 	if f.IsValid() {
 		f.Set(reflect.ValueOf(value))
 	} else {
-		logger.Debug(fmt.Sprintf("[monitorGroup.setProperty] Invalid monitor group property %s; ignoring", property))
+		logger.Debug(fmt.Sprintf("[monitorgroup.setProperty] Invalid monitor group property %s; ignoring", property))
 	}
-
 }
 
 // Create is the implementation of the `monitor_group create` command
@@ -100,18 +115,10 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 
 // Get is the implementation of the `monitor_group get` command
 func Get(id string, fs *pflag.FlagSet) ([]byte, error) {
-	data, err := apiMonitorGroupGet(id)
+	mg, err := get(id)
 	if err != nil {
 		return nil, err
 	}
-
-	// Ensure that we have a fully hydrated user struct
-	var mg api.MonitorGroup
-	if err = json.Unmarshal(data, &mg); err != nil {
-		return nil, fmt.Errorf("[monitorGroup.Get] Unable to  parse response data (%s)", err)
-	}
-
-	fmt.Printf("%+v", mg)
 
 	j, _ := json.MarshalIndent(mg, "", "    ")
 
@@ -119,70 +126,53 @@ func Get(id string, fs *pflag.FlagSet) ([]byte, error) {
 }
 
 // Update is the implementation of the `user update` command
-// func Update(fs *pflag.FlagSet) ([]byte, error) {
-// 	validateAccessors(fs)
-// 	validateWriters(fs)
+func Update(id string, fs *pflag.FlagSet) ([]byte, error) {
+	logger.Info(fmt.Sprintf("[MonitorGroup.Update] Updating group with ID %s", id))
 
-// 	id, _ := fs.GetString("id")
-// 	email, _ := fs.GetString("email")
-// 	u, err := get(id, email)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	mg, err := get(id)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// Hydrate the user, updating ONLY flags that were set
-// 	fs.Visit(func(f *pflag.Flag) {
-// 		// If this is a flag that doesn't directly map to a user property,
-// 		// skip it by returning early
-// 		if _, ok := nonUserFlags[f.Name]; ok {
-// 			return
-// 		}
+	logger.Debug(fmt.Sprintf("[MonitorGroup.Update] Fetched group %+v", mg))
 
-// 		// Extract the appropriately typed value from the flag
-// 		var v interface{}
-// 		switch f.Value.Type() {
-// 		case "string":
-// 			v, _ = fs.GetString(f.Name)
-// 		case "int":
-// 			v, _ = fs.GetInt(f.Name)
-// 		case "stringSlice":
-// 			v, _ = fs.GetStringSlice(f.Name)
-// 		case "intSlice":
-// 			v, _ = fs.GetIntSlice(f.Name)
-// 		default:
-// 			// This is a problem, but I'm not sure it needs to be a fatal one
-// 			logger.Warn(fmt.Sprintf("[user.Update] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
-// 		}
+	// Hydrate the user, updating ONLY flags that were set
+	fs.Visit(func(f *pflag.Flag) {
+		// Extract the appropriately typed value from the flag
+		var v interface{}
+		switch f.Value.Type() {
+		case "string":
+			v, _ = fs.GetString(f.Name)
+		case "int":
+			v, _ = fs.GetInt(f.Name)
+		case "stringSlice":
+			v, _ = fs.GetStringSlice(f.Name)
+		default:
+			// This is a problem, but I'm not sure it needs to be a fatal one
+			logger.Warn(fmt.Sprintf("[monitorgroup.Update] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
+		}
 
-// 		// normalize property name
-// 		p := normalizeName(f)
+		// normalize property name
+		p := normalizeName(f)
 
-// 		if strings.HasPrefix(p, "AlertingPeriod") {
-// 			setProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
-// 		} else if strings.HasPrefix(p, "Alert") {
-// 			setProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
-// 		} else if strings.HasPrefix(p, "Mobile") {
-// 			setProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
-// 		} else {
-// 			setProperty(u, p, v)
-// 		}
-// 	})
+		setProperty(mg, p, v)
+	})
 
-// 	data, err := apiUserUpdate(u)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	data, err := apiMonitorGroupUpdate(mg)
+	if err != nil {
+		return nil, err
+	}
 
-// 	// Ensure that we have a fully hydrated user struct
-// 	var usr api.User
-// 	if err = json.Unmarshal(data, &usr); err != nil {
-// 		return nil, fmt.Errorf("[user.Update] Unable to  parse response data (%s)", err)
-// 	}
+	// Ensure that we have a fully hydrated user struct
+	var mgOut api.MonitorGroup
+	if err = json.Unmarshal(data, &mgOut); err != nil {
+		return nil, fmt.Errorf("[monitorgroup.Update] Unable to  parse response data (%s)", err)
+	}
 
-// 	j, _ := json.MarshalIndent(usr, "", "    ")
+	j, _ := json.MarshalIndent(mgOut, "", "    ")
 
-// 	return j, nil
-// }
+	return j, nil
+}
 
 // Delete is the implementation of the `monitor_group delete` command
 func Delete(id string, fs *pflag.FlagSet) error {

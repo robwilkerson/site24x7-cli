@@ -113,8 +113,6 @@ func UserList() (json.RawMessage, error) {
 func UserCreate(u *User) (json.RawMessage, error) {
 	b := u.toRequestBody()
 
-	logger.Debug(fmt.Sprintf("Request body\n%s", string(b)))
-
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users", os.Getenv("API_BASE_URL")),
 		Method:   "POST",
@@ -168,8 +166,6 @@ func UserGet(id string) (json.RawMessage, error) {
 // UserUpdate modifies an account user. https://www.site24x7.com/help/api/#update-user
 func UserUpdate(u *User) (json.RawMessage, error) {
 	b := u.toRequestBody()
-
-	logger.Debug(fmt.Sprintf("Request body\n%s", string(b)))
 
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), u.ID),

@@ -26,7 +26,7 @@ type MonitorGroup struct {
 	Subgroups            []MonitorGroup `json:"subgroups,omitempty"`
 }
 
-// MonitorGroupRequestBody identifies the HTTP request body structure
+// MonitorGroupRequestBody defines the HTTP request body structure
 type MonitorGroupRequestBody struct {
 	Name                 string   `json:"display_name"`
 	Description          string   `json:"description"`
@@ -47,6 +47,7 @@ func (mg *MonitorGroup) toRequestBody() []byte {
 }
 
 // MonitorGroupList returns all monitor groups
+// https://www.site24x7.com/help/api/#list-of-all-monitor-groups
 func MonitorGroupList(withSubgroups bool) (json.RawMessage, error) {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
@@ -65,7 +66,7 @@ func MonitorGroupList(withSubgroups bool) (json.RawMessage, error) {
 		return nil, err
 	}
 
-	if res.Message != "success" || res.Data == nil {
+	if res.Message != "success" || string(res.Data) == "{}" {
 		return nil, fmt.Errorf("Error retrieving monitor groups; message: %s", res.Message)
 	}
 
@@ -74,10 +75,9 @@ func MonitorGroupList(withSubgroups bool) (json.RawMessage, error) {
 
 // MonitorGroupCreate establishes a new monitor group if a group with the same name does
 // not already exist
+// https://www.site24x7.com/help/api/#create-monitor-group
 func MonitorGroupCreate(mg *MonitorGroup) (json.RawMessage, error) {
 	b := mg.toRequestBody()
-
-	logger.Debug(fmt.Sprintf("Request body\n%s", string(b)))
 
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/monitor_groups", os.Getenv("API_BASE_URL")),
@@ -92,16 +92,17 @@ func MonitorGroupCreate(mg *MonitorGroup) (json.RawMessage, error) {
 	if err != nil {
 		return nil, err
 	}
-	if res.Data == nil || res.Message != "success" {
+	if string(res.Data) == "{}" || res.Message != "success" {
 		logger.Debug(fmt.Sprintf("Response\n%+v", res))
 
-		return nil, fmt.Errorf("[MonitorGroup.Create] API Response error; %s", res.Message)
+		return nil, fmt.Errorf("[api.MonitorGroupCreate] API Response error; %s", res.Message)
 	}
 
 	return res.Data, nil
 }
 
 // MonitorGroupGet fetches a monitor group
+// https://www.site24x7.com/help/api/#retrieve-monitor-group
 func MonitorGroupGet(id string) (json.RawMessage, error) {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/monitor_groups/%s", os.Getenv("API_BASE_URL"), id),
@@ -117,9 +118,34 @@ func MonitorGroupGet(id string) (json.RawMessage, error) {
 		return nil, err
 	}
 
-	if res.Data == nil {
+	if string(res.Data) == "{}" {
 		// Handle a "known" error just a little bit more cleanly
 		return nil, &NotFoundError{"monitor group not found"}
+	}
+
+	return res.Data, nil
+}
+
+// MonitorGroupUpdate updates a monitor group
+// https://www.site24x7.com/help/api/#update-monitor-group
+func MonitorGroupUpdate(mg *MonitorGroup) (json.RawMessage, error) {
+	b := mg.toRequestBody()
+
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/monitor_groups/%s", os.Getenv("API_BASE_URL"), mg.ID),
+		Method:   "PUT",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.1"},
+		},
+		Body: b,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return nil, err
+	}
+	if string(res.Data) == "{}" || res.Message != "success" {
+		return nil, fmt.Errorf("[api.MonitorGroupUpdate] API Response error; %s", res.Message)
 	}
 
 	return res.Data, nil
@@ -141,7 +167,7 @@ func MonitorGroupDelete(id string) error {
 		return err
 	}
 	if res.Message != "success" {
-		return fmt.Errorf("[MonitorGroupDelete] API Response error; %s", res.Message)
+		return fmt.Errorf("[api.MonitorGroupDelete] API Response error; %s", res.Message)
 	}
 
 	return nil

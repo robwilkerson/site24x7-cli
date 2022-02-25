@@ -272,6 +272,117 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestUpdate(t *testing.T) {
+	type args struct {
+		id string
+		fs *pflag.FlagSet
+	}
+
+	fs := GetWriterFlags()
+
+	mockGroup := &api.MonitorGroup{ID: "1001001SOS", Name: "Test Group"}
+	mockGroupUpdated := &api.MonitorGroup{
+		ID:                   "1001001SOS",
+		Name:                 "Test Group",
+		Description:          "This group is just for testing",
+		Monitors:             []string{"Foo", "Bar", "Baz"},
+		HealthThresholdCount: 4,
+	}
+	mockGroupUpdatedPrettyJSON, _ := json.MarshalIndent(mockGroupUpdated, "", "    ")
+
+	tests := []struct {
+		name             string
+		args             args
+		before           func()
+		getFn            func(id string) (*api.MonitorGroup, error)
+		apiGroupUpdateFn func(u *api.MonitorGroup) (json.RawMessage, error)
+		want             []byte
+		wantErr          bool
+		wantErrMsg       string
+	}{
+		{
+			name: "Handles an error from the get function",
+			args: args{
+				id: "1001001SOS",
+				fs: fs,
+			},
+			before: func() {
+				// noop
+			},
+			getFn: func(id string) (*api.MonitorGroup, error) {
+				return nil, errors.New("testing!")
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Handles an API error",
+			args: args{
+				id: "1001001SOS",
+				fs: fs,
+			},
+			before: func() {
+				// noop
+			},
+			getFn: func(id string) (*api.MonitorGroup, error) {
+				return mockGroup, nil
+			},
+			apiGroupUpdateFn: func(u *api.MonitorGroup) (json.RawMessage, error) {
+				return nil, errors.New("testing!")
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Updates an existing user",
+			args: args{
+				fs: fs,
+			},
+			before: func() {
+				// The .Set() function flips the .Changed flag
+				fs.Set("description", "This group is just for testing")
+				fs.Set("monitors", "Foo")
+				fs.Set("monitors", "Bar")
+				fs.Set("monitors", "Baz")
+				fs.Set("health-threshold", "4")
+				// this flag should be ignored
+				fs.Set("ignore-me", "boo!")
+			},
+			getFn: func(id string) (*api.MonitorGroup, error) {
+				return mockGroup, nil
+			},
+			apiGroupUpdateFn: func(u *api.MonitorGroup) (json.RawMessage, error) {
+				// return what was sent
+				j, _ := json.Marshal(u)
+
+				return j, nil
+			},
+			want:    mockGroupUpdatedPrettyJSON,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		get = tt.getFn
+		apiMonitorGroupUpdate = tt.apiGroupUpdateFn
+		t.Run(tt.name, func(t *testing.T) {
+			tt.before()
+			got, err := Update(tt.args.id, tt.args.fs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && !strings.Contains(err.Error(), tt.wantErrMsg) {
+				t.Errorf("Update() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Update() = %v, want %v", string(got), string(tt.want))
+			}
+		})
+	}
+}
+
 func TestDelete(t *testing.T) {
 	type args struct {
 		id string

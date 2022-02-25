@@ -110,11 +110,37 @@ var monitorGroupGetCmd = &cobra.Command{
 	},
 }
 
+var monitorGroupUpdateCmd = &cobra.Command{
+	Use:     "update <id>",
+	Short:   "Updates an existing monitor group",
+	Long:    `Updates an existing monitor group.`,
+	Aliases: []string{"modify"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
+
+		id := args[0]
+		json, err := monitorgroup.Update(id, cmd.Flags())
+		if err != nil {
+			// Handle a known error just a bit more cleanly
+			if err, ok := err.(*api.NotFoundError); ok {
+				logger.Warn(err.Error())
+				return nil
+			}
+
+			return err
+		}
+
+		logger.Out(string(json))
+
+		return nil
+	},
+}
+
 // monitorGroupDeleteCmd represents the `monitor_group delete` subcommand
 var monitorGroupDeleteCmd = &cobra.Command{
-	Use:   "delete <id>",
-	Short: "Deletes a specific monitor group",
-	Long: `Deletes a specific monitor group.`,
+	Use:     "delete <id>",
+	Short:   "Deletes a specific monitor group",
+	Long:    `Deletes a specific monitor group.`,
 	Aliases: []string{"del", "rm", "remove"},
 	Args: func(cmd *cobra.Command, args []string) error {
 		expectedArgLen := 1
@@ -165,6 +191,7 @@ func init() {
 	rootCmd.AddCommand(monitorGroupCmd)
 	monitorGroupCmd.AddCommand(monitorGroupCreateCmd)
 	monitorGroupCmd.AddCommand(monitorGroupGetCmd)
+	monitorGroupCmd.AddCommand(monitorGroupUpdateCmd)
 	monitorGroupCmd.AddCommand(monitorGroupDeleteCmd)
 	monitorGroupCmd.AddCommand(monitorGroupListCmd)
 
@@ -174,4 +201,7 @@ func init() {
 
 	// Flags for the `monitor_group list command`
 	monitorGroupListCmd.Flags().Bool("with-subgroups", false, "When true, returns all subgroups")
+
+	// Flags for the `monitor_group update` command
+	monitorGroupUpdateCmd.Flags().AddFlagSet(monitorgroup.GetWriterFlags())
 }
