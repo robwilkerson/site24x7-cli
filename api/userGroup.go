@@ -88,6 +88,28 @@ func UserGroupGet(id string) (json.RawMessage, error) {
 	return res.Data, nil
 }
 
+// UserGroupDelete removes a user group
+func UserGroupDelete(id string) error {
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/user_groups/%s", os.Getenv("API_BASE_URL"), id),
+		Method:   "DELETE",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return err
+	}
+	if res.Message != "success" {
+		return fmt.Errorf("[api.UserGroupDelete] API Response error; %s", res.Message)
+	}
+
+	return nil
+}
+
 // UserGroupList returns all monitor groups
 // https://www.site24x7.com/help/api/#list-of-all-user-groups
 func UserGroupList() (json.RawMessage, error) {

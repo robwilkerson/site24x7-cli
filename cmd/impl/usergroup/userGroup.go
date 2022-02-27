@@ -16,7 +16,7 @@ var apiUserGroupCreate = api.UserGroupCreate
 var apiUserGroupGet = api.UserGroupGet
 
 // var apiUserGroupUpdate = api.UserGroupUpdate
-// var apiUserGroupDelete = api.UserGroupDelete
+var apiUserGroupDelete = api.UserGroupDelete
 var apiUserGroupList = api.UserGroupList
 
 // list returns a slice containing all users on the account
@@ -122,6 +122,16 @@ func Get(id string) ([]byte, error) {
 	j, _ := json.MarshalIndent(ug, "", "    ")
 
 	return j, nil
+}
+
+// Delete is the implementation of the `monitor_group delete` command
+func Delete(id string) error {
+	err := apiUserGroupDelete(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // List is the implementation of the `user_group list` command

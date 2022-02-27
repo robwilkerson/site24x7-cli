@@ -147,36 +147,36 @@ https://www.site24x7.com/help/api/#retrieve-user-group`,
 // }
 
 // userGroupDeleteCmd represents the `user_group delete` subcommand
-// var userGroupDeleteCmd = &cobra.Command{
-// 	Use:   "delete <id>",
-// 	Short: "Deletes a specific user group",
-// 	Long: `Deletes a specific user group.
+var userGroupDeleteCmd = &cobra.Command{
+	Use:   "delete <id>",
+	Short: "Deletes a specific user group",
+	Long: `Deletes a specific user group.
 
-// https://www.site24x7.com/help/api/#delete-user-group`,
-// 	Aliases: []string{"del", "rm", "remove"},
-// 	Args: func(cmd *cobra.Command, args []string) error {
-// 		expectedArgLen := 1
-// 		actualArgLen := len(args)
-// 		if actualArgLen != expectedArgLen {
-// 			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
-// 		}
+https://www.site24x7.com/help/api/#delete-user-group`,
+	Aliases: []string{"del", "rm", "remove"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		expectedArgLen := 1
+		actualArgLen := len(args)
+		if actualArgLen != expectedArgLen {
+			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
+		}
 
-// 		return nil
-// 	},
-// 	RunE: func(cmd *cobra.Command, args []string) error {
-// 		logger.SetVerbosity(cmd.Flags())
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
 
-// 		id := args[0]
-// 		err := monitorgroup.Delete(id, cmd.Flags())
-// 		if err != nil {
-// 			return err
-// 		}
+		id := args[0]
+		err := usergroup.Delete(id)
+		if err != nil {
+			return err
+		}
 
-// 		logger.Out("User group successfully deleted!")
+		logger.Out("User group successfully deleted!")
 
-// 		return nil
-// 	},
-// }
+		return nil
+	},
+}
 
 // userGroupListCmd represents the `user_group list` subcommand
 var userGroupListCmd = &cobra.Command{
@@ -205,7 +205,7 @@ func init() {
 	userGroupCmd.AddCommand(userGroupCreateCmd)
 	userGroupCmd.AddCommand(userGroupGetCmd)
 	// userGroupCmd.AddCommand(userGroupUpdateCmd)
-	// userGroupCmd.AddCommand(userGroupDeleteCmd)
+	userGroupCmd.AddCommand(userGroupDeleteCmd)
 	userGroupCmd.AddCommand(userGroupListCmd)
 
 	// Flags for the `user_group create` command
