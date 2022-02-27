@@ -43,42 +43,42 @@ https://www.site24x7.com/help/api/#user-groups`,
 }
 
 // userGroupCreateCmd represents the `user_group create` command
-// var userGroupCreateCmd = &cobra.Command{
-// 	Use:   "create <display name>",
-// 	Short: "Creates a new user group",
-// 	Long: `Creates a new user group.
+var userGroupCreateCmd = &cobra.Command{
+	Use:   "create <display name>",
+	Short: "Creates a new user group",
+	Long: `Creates a new user group.
 
-// https://www.site24x7.com/help/api/#create-user-group`,
-// 	Aliases: []string{"add", "new"},
-// 	Args: func(cmd *cobra.Command, args []string) error {
-// 		expectedArgLen := 1
-// 		actualArgLen := len(args)
-// 		if actualArgLen != expectedArgLen {
-// 			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
-// 		}
+https://www.site24x7.com/help/api/#create-user-group`,
+	Aliases: []string{"add", "new"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		expectedArgLen := 1
+		actualArgLen := len(args)
+		if actualArgLen != expectedArgLen {
+			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
+		}
 
-// 		return nil
-// 	},
-// 	RunE: func(cmd *cobra.Command, args []string) error {
-// 		logger.SetVerbosity(cmd.Flags())
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
 
-// 		name := args[0]
-// 		json, err := usergroup.Create(name, cmd.Flags())
-// 		if err != nil {
-// 			// Handle a user already exists error nicely
-// 			if err, ok := err.(*api.ConflictError); ok {
-// 				logger.Warn(err.Error())
-// 				return nil
-// 			}
+		name := args[0]
+		json, err := usergroup.Create(name, cmd.Flags())
+		if err != nil {
+			// Handle a user already exists error nicely
+			if err, ok := err.(*api.ConflictError); ok {
+				logger.Warn(err.Error())
+				return nil
+			}
 
-// 			return err
-// 		}
+			return err
+		}
 
-// 		logger.Out(string(json))
+		logger.Out(string(json))
 
-// 		return nil
-// 	},
-// }
+		return nil
+	},
+}
 
 // userGroupGetCmd represents the `user_group get` subcommand
 var userGroupGetCmd = &cobra.Command{
@@ -202,14 +202,15 @@ https://www.site24x7.com/help/api/#list-of-all-user-groups`,
 
 func init() {
 	rootCmd.AddCommand(userGroupCmd)
-	// userGroupCmd.AddCommand(userGroupCreateCmd)
+	userGroupCmd.AddCommand(userGroupCreateCmd)
 	userGroupCmd.AddCommand(userGroupGetCmd)
 	// userGroupCmd.AddCommand(userGroupUpdateCmd)
 	// userGroupCmd.AddCommand(userGroupDeleteCmd)
 	userGroupCmd.AddCommand(userGroupListCmd)
 
 	// Flags for the `user_group create` command
-	// userGroupCreateCmd.Flags().AddFlagSet(usergroup.GetWriterFlags())
+	userGroupCreateCmd.Flags().AddFlagSet(usergroup.GetWriterFlags())
+	userGroupCreateCmd.MarkFlagRequired("users")
 
 	// Flags for the `user_group update` command
 	// userGroupUpdateCmd.Flags().AddFlagSet(usergroup.GetWriterFlags())

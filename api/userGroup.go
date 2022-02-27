@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"site24x7/logger"
 )
 
 // UserGroup contains the data returned from any request for user group
@@ -15,6 +16,51 @@ type UserGroup struct {
 	Product        int      `json:"product_id"` // https://www.site24x7.com/help/api/#product_constants
 	Users          []string `json:"users"`
 	AttributeGroup string   `json:"attribute_group_id"`
+}
+
+// UserGroupRequestBody defines the HTTP request body structure
+type UserGroupRequestBody struct {
+	Name           string   `json:"display_name"`
+	Product        int      `json:"product_id"` // https://www.site24x7.com/help/api/#product_constants
+	Users          []string `json:"users"`
+	AttributeGroup string   `json:"attribute_group_id"`
+}
+
+// toRequestBody performs a struct conversion
+func (ug *UserGroup) toRequestBody() []byte {
+	var b UserGroupRequestBody
+	tmp, _ := json.Marshal(ug)
+	json.Unmarshal(tmp, &b)
+	body, _ := json.Marshal(b)
+
+	return body
+}
+
+// UserGroupCreate establishes a new user group
+// https://www.site24x7.com/help/api/#create-user-group
+func UserGroupCreate(ug *UserGroup) (json.RawMessage, error) {
+	b := ug.toRequestBody()
+
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/user_groups", os.Getenv("API_BASE_URL")),
+		Method:   "POST",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: b,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return nil, err
+	}
+	if string(res.Data) == "{}" || res.Message != "success" {
+		logger.Debug(fmt.Sprintf("Response\n%+v", res))
+
+		return nil, fmt.Errorf("[api.UserGroupCreate] API Response error; %s", res.Message)
+	}
+
+	return res.Data, nil
 }
 
 // UserGroupGet fetches a monitor group

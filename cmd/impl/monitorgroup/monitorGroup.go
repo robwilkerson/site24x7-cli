@@ -65,7 +65,7 @@ func setProperty(v interface{}, property string, value interface{}) {
 	if f.IsValid() {
 		f.Set(reflect.ValueOf(value))
 	} else {
-		logger.Debug(fmt.Sprintf("[monitorgroup.setProperty] Invalid monitor group property %s; ignoring", property))
+		logger.Warn(fmt.Sprintf("[monitorgroup.setProperty] Invalid monitor group property %s; ignoring", property))
 	}
 }
 
