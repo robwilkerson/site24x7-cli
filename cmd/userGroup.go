@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"site24x7/api"
 	"site24x7/cmd/impl/usergroup"
 	"site24x7/logger"
@@ -80,41 +81,41 @@ https://www.site24x7.com/help/api/#user-groups`,
 // }
 
 // userGroupGetCmd represents the `user_group get` subcommand
-// var userGroupGetCmd = &cobra.Command{
-// 	Use:   "get <id>",
-// 	Short: "Retrieves a specific user group",
-// 	Long: `Retrieves a specific user group.
+var userGroupGetCmd = &cobra.Command{
+	Use:   "get <id>",
+	Short: "Retrieves a specific user group",
+	Long: `Retrieves a specific user group.
 
-// https://www.site24x7.com/help/api/#retrieve-user-group`,
-// 	Aliases: []string{"fetch", "retrieve", "read"},
-// 	Args: func(cmd *cobra.Command, args []string) error {
-// 		expectedArgLen := 1
-// 		actualArgLen := len(args)
-// 		if actualArgLen != expectedArgLen {
-// 			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
-// 		}
+https://www.site24x7.com/help/api/#retrieve-user-group`,
+	Aliases: []string{"fetch", "retrieve", "read"},
+	Args: func(cmd *cobra.Command, args []string) error {
+		expectedArgLen := 1
+		actualArgLen := len(args)
+		if actualArgLen != expectedArgLen {
+			return fmt.Errorf("expected %d arguments, received %d", expectedArgLen, actualArgLen)
+		}
 
-// 		return nil
-// 	},
-// 	RunE: func(cmd *cobra.Command, args []string) error {
-// 		logger.SetVerbosity(cmd.Flags())
+		return nil
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		logger.SetVerbosity(cmd.Flags())
 
-// 		id := args[0]
-// 		j, err := usergroup.Get(id, cmd.Flags())
-// 		if err != nil {
-// 			if err, ok := err.(*api.NotFoundError); ok {
-// 				logger.Warn(err.Error())
-// 				return nil
-// 			}
+		id := args[0]
+		j, err := usergroup.Get(id)
+		if err != nil {
+			if err, ok := err.(*api.NotFoundError); ok {
+				logger.Warn(err.Error())
+				return nil
+			}
 
-// 			return err
-// 		}
+			return err
+		}
 
-// 		logger.Out(string(j))
+		logger.Out(string(j))
 
-// 		return nil
-// 	},
-// }
+		return nil
+	},
+}
 
 // userGroupUpdateCmd represents the `user_group update` subcommand
 // var userGroupUpdateCmd = &cobra.Command{
@@ -202,7 +203,7 @@ https://www.site24x7.com/help/api/#list-of-all-user-groups`,
 func init() {
 	rootCmd.AddCommand(userGroupCmd)
 	// userGroupCmd.AddCommand(userGroupCreateCmd)
-	// userGroupCmd.AddCommand(userGroupGetCmd)
+	userGroupCmd.AddCommand(userGroupGetCmd)
 	// userGroupCmd.AddCommand(userGroupUpdateCmd)
 	// userGroupCmd.AddCommand(userGroupDeleteCmd)
 	userGroupCmd.AddCommand(userGroupListCmd)

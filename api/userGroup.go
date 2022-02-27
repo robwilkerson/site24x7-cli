@@ -17,6 +17,31 @@ type UserGroup struct {
 	AttributeGroup string   `json:"attribute_group_id"`
 }
 
+// UserGroupGet fetches a monitor group
+// https://www.site24x7.com/help/api/#retrieve-user-group
+func UserGroupGet(id string) (json.RawMessage, error) {
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/user_groups/%s", os.Getenv("API_BASE_URL"), id),
+		Method:   "GET",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: nil,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return nil, err
+	}
+
+	if string(res.Data) == "{}" {
+		// Handle a "known" error just a little bit more cleanly
+		return nil, &NotFoundError{"user group not found"}
+	}
+
+	return res.Data, nil
+}
+
 // UserGroupList returns all monitor groups
 // https://www.site24x7.com/help/api/#list-of-all-user-groups
 func UserGroupList() (json.RawMessage, error) {

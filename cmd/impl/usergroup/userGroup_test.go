@@ -78,6 +78,143 @@ func Test_list(t *testing.T) {
 	}
 }
 
+func Test_get(t *testing.T) {
+	type args struct {
+		id string
+	}
+
+	var mockUserGroup api.UserGroup
+	mockAPIResponse := []byte(`{
+		"user_group_id": "1001001SOS",
+		"display_name": "Team 1"
+	}`)
+	mockBadAPIResponse := []byte(`{
+		"user_group_id": "1001001SOS",
+		"display_name": "Team 1",
+	}`)
+	json.Unmarshal(mockAPIResponse, &mockUserGroup)
+
+	tests := []struct {
+		name       string
+		args       args
+		findFn     func(id string) (*api.UserGroup, error)
+		apiGetFn   func(id string) (json.RawMessage, error)
+		want       *api.UserGroup
+		wantErr    bool
+		wantErrMsg string
+	}{
+		{
+			name: "Handles an API error",
+			args: args{
+				id: "1001001SOS",
+			},
+			apiGetFn: func(test string) (json.RawMessage, error) {
+				return nil, errors.New("testing!")
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Handles a malformed API response",
+			args: args{
+				id: "1001001SOS",
+			},
+			apiGetFn: func(test string) (json.RawMessage, error) {
+				return mockBadAPIResponse, nil
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "Unable to  parse response data",
+		},
+		{
+			name: "Returns formatted JSON",
+			args: args{
+				id: "1001001SOS",
+			},
+			apiGetFn: func(userID string) (json.RawMessage, error) {
+				return mockAPIResponse, nil
+			},
+			want:    &mockUserGroup,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		apiUserGroupGet = tt.apiGetFn
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := get(tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && !strings.Contains(err.Error(), tt.wantErrMsg) {
+				t.Errorf("get() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGet(t *testing.T) {
+	type args struct {
+		id string
+	}
+
+	mockUserGroup := &api.UserGroup{ID: "1001001SOS", Name: "Team 1"}
+	mockUserGroupJSON, _ := json.MarshalIndent(mockUserGroup, "", "    ")
+
+	tests := []struct {
+		name       string
+		args       args
+		getFn      func(id string) (*api.UserGroup, error)
+		want       []byte
+		wantErr    bool
+		wantErrMsg string
+	}{
+		{
+			name: "Handles an error from the getter",
+			args: args{
+				id: "1001001SOS",
+			},
+			getFn: func(id string) (*api.UserGroup, error) {
+				return nil, errors.New("testing!")
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Returns formatted json if found",
+			args: args{
+				id: "1001001SOS",
+			},
+			getFn: func(id string) (*api.UserGroup, error) {
+				return mockUserGroup, nil
+			},
+			want:    mockUserGroupJSON,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		get = tt.getFn
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := Get(tt.args.id)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Get() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && !strings.Contains(err.Error(), tt.wantErrMsg) {
+				t.Errorf("Get() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Get() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestList(t *testing.T) {
 	mockList := []api.UserGroup{
 		{Name: "Team 1"},
