@@ -125,7 +125,7 @@ func Get(id string, fs *pflag.FlagSet) ([]byte, error) {
 	return j, nil
 }
 
-// Update is the implementation of the `user update` command
+// Update is the implementation of the `monitor_group update` command
 func Update(id string, fs *pflag.FlagSet) ([]byte, error) {
 	logger.Info(fmt.Sprintf("[MonitorGroup.Update] Updating group with ID %s", id))
 
@@ -184,7 +184,7 @@ func Delete(id string, fs *pflag.FlagSet) error {
 	return nil
 }
 
-// List is the implementation of the `user list` command
+// List is the implementation of the `monitor_group list` command
 func List(fs *pflag.FlagSet) ([]byte, error) {
 	sg, _ := fs.GetBool("with-subgroups")
 
