@@ -95,7 +95,11 @@ func setProperty(v interface{}, property string, value interface{}) {
 
 	// TODO: check f.IsValid() before setting; see monitorgroup.setProperty()
 
-	f.Set(reflect.ValueOf(value))
+	if f.IsValid() {
+		f.Set(reflect.ValueOf(value))
+	} else {
+		logger.Warn(fmt.Sprintf("[usergroup.setProperty] Invalid user group property %s; ignoring", property))
+	}
 }
 
 // Create is the implementation of the `user create` command
@@ -129,6 +133,8 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 			v, _ = fs.GetStringSlice(f.Name)
 		case "intSlice":
 			v, _ = fs.GetIntSlice(f.Name)
+		case "bool":
+			v, _ = fs.GetBool(f.Name)
 		default:
 			// This is a problem, but I'm not sure it needs to be a fatal one
 			logger.Warn(fmt.Sprintf("[user.Create] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
@@ -213,6 +219,8 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 			v, _ = fs.GetStringSlice(f.Name)
 		case "intSlice":
 			v, _ = fs.GetIntSlice(f.Name)
+		case "bool":
+			v, _ = fs.GetBool(f.Name)
 		default:
 			// This is a problem, but I'm not sure it needs to be a fatal one
 			logger.Warn(fmt.Sprintf("[user.Update] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
