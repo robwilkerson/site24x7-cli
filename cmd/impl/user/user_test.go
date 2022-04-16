@@ -391,6 +391,14 @@ func TestCreate(t *testing.T) {
 	json.Unmarshal(mockAPIResponse, &mockUser)
 	mockUserJSON, _ := json.MarshalIndent(mockUser, "", "    ")
 
+	var GetWriterFlagsWithInvalidProperty = func() *pflag.FlagSet {
+		fs := GetWriterFlags()
+
+		fs.String("random-invalid-property", "DUMMY", "Should be ignored")
+
+		return fs
+	}
+
 	tests := []struct {
 		name        string
 		args        args
@@ -417,6 +425,18 @@ func TestCreate(t *testing.T) {
 			args: args{
 				email: "boo@berry.com",
 				fs:    GetWriterFlags(),
+			},
+			apiCreateFn: func(u *api.User) (json.RawMessage, error) {
+				return mockAPIResponse, nil
+			},
+			want:    mockUserJSON,
+			wantErr: false,
+		},
+		{
+			name: "Ignores an invalid property",
+			args: args{
+				email: "boo@berry.com",
+				fs:    GetWriterFlagsWithInvalidProperty(),
 			},
 			apiCreateFn: func(u *api.User) (json.RawMessage, error) {
 				return mockAPIResponse, nil

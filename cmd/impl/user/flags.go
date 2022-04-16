@@ -7,18 +7,6 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// nonUserFlags identifies command line flags that might be passed, but do not
-// map to user properties and should be ignored when hydrating a user struct.
-// TODO: this can be killed once IsValid() is invoked per another TODO
-var nonUserFlags = map[string]int{
-	// Sent as a flag to be used as an accessor
-	"id":    0,
-	"email": 0,
-	// A non-user flag sent to signal consent for some accounts
-	"non-eu-alert-consent": 0,
-	"help":                 0,
-}
-
 // GetAccessorFlags returns the default flagset that's passed to commands that
 // need to read or identify a specific user.
 func GetAccessorFlags() *pflag.FlagSet {

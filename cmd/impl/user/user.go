@@ -107,12 +107,6 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 
 	u := &api.User{EmailAddress: email}
 	fs.VisitAll(func(f *pflag.Flag) {
-		// If this is a flag that doesn't directly map to a user property,
-		// skip it by returning early
-		if _, ok := nonUserFlags[f.Name]; ok {
-			return
-		}
-
 		// StatusIQRole & CloudspendRole may not exist for some accounts and the
 		// default value is invalid to ensure that it returns an error. For
 		// these we want to explicitly exclude them if they weren't changed.
@@ -200,12 +194,6 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 
 	// Hydrate the user, updating ONLY flags that were set
 	fs.Visit(func(f *pflag.Flag) {
-		// If this is a flag that doesn't directly map to a user property,
-		// skip it by returning early
-		if _, ok := nonUserFlags[f.Name]; ok {
-			return
-		}
-
 		// Extract the appropriately typed value from the flag
 		var v any
 		switch f.Value.Type() {
