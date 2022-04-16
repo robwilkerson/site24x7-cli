@@ -52,7 +52,7 @@ var get = func(id string) (*api.UserGroup, error) {
 }
 
 // setProperty sets a struct property
-func setProperty(v interface{}, property string, value interface{}) {
+func setProperty(v any, property string, value any) {
 	logger.Debug(fmt.Sprintf("[usergroup.setProperty] Setting %s; value: %v", property, value))
 
 	rv := reflect.ValueOf(v)
@@ -75,7 +75,7 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	ug := &api.UserGroup{Name: name}
 	fs.VisitAll(func(f *pflag.Flag) {
 		// Extract the appropriately typed value from the flag
-		var v interface{}
+		var v any
 		switch f.Value.Type() {
 		case "string":
 			v, _ = fs.GetString(f.Name)

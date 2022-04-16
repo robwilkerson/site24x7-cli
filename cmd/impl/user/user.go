@@ -82,7 +82,7 @@ var get = func(id string, email string) (*api.User, error) {
 
 // setProperty sets either a user property or a property on one of a user's
 // nested property structures.
-func setProperty(v interface{}, property string, value interface{}) {
+func setProperty(v any, property string, value any) {
 	logger.Debug(fmt.Sprintf("Setting %s; value: %v\n", property, value))
 
 	rv := reflect.ValueOf(v)
@@ -121,7 +121,7 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 		}
 
 		// Extract the appropriately typed value from the flag
-		var v interface{}
+		var v any
 		switch f.Value.Type() {
 		case "string":
 			v, _ = fs.GetString(f.Name)
@@ -207,7 +207,7 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 		}
 
 		// Extract the appropriately typed value from the flag
-		var v interface{}
+		var v any
 		switch f.Value.Type() {
 		case "string":
 			v, _ = fs.GetString(f.Name)
