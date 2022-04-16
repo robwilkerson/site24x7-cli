@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.17.5
+  - 1.18.1
 
 install:
   - go install
