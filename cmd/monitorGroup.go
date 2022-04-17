@@ -33,6 +33,8 @@ var monitorGroupCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// authenticate before all non-config commands
 		api.Authenticate()
+		// set the log verbosity for any monitor_group command execution
+		logger.SetVerbosity(cmd.Flags())
 	},
 	// Run: func(cmd *cobra.Command, args []string) {
 	//  NOOP - requires subcommand
@@ -55,8 +57,6 @@ var monitorGroupCreateCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		name := args[0]
 		json, err := monitorgroup.Create(name, cmd.Flags())
 		if err != nil {
@@ -91,8 +91,6 @@ var monitorGroupGetCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		id := args[0]
 		j, err := monitorgroup.Get(id, cmd.Flags())
 		if err != nil {
@@ -116,8 +114,6 @@ var monitorGroupUpdateCmd = &cobra.Command{
 	Long:    `Updates an existing monitor group.`,
 	Aliases: []string{"modify"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		id := args[0]
 		json, err := monitorgroup.Update(id, cmd.Flags())
 		if err != nil {
@@ -152,8 +148,6 @@ var monitorGroupDeleteCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		id := args[0]
 
 		err := monitorgroup.Delete(id, cmd.Flags())
@@ -174,8 +168,6 @@ var monitorGroupListCmd = &cobra.Command{
 	Long:    `Retrieves a list of all monitor groups.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		json, err := monitorgroup.List(cmd.Flags())
 		if err != nil {
 			return err
