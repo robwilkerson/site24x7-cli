@@ -6,6 +6,7 @@ install:
   - go install
 script:
   - go build
+  - test -z $(gofmt -l .)
   - go test ./... -cover
 
 before_deploy: "echo \"Creating a Github release for version ${TRAVIS_TAG}\""
