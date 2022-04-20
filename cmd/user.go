@@ -32,6 +32,8 @@ var userCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// authenticate before all non-config commands
 		api.Authenticate()
+		// set the log verbosity for any monitor_group command execution
+		logger.SetVerbosity(cmd.Flags())
 	},
 	// Run: func(cmd *cobra.Command, args []string) {
 	//  NOOP - requires subcommand
@@ -63,8 +65,6 @@ Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		email := args[0]
 		json, err := user.Create(email, cmd.Flags())
 		if err != nil {
@@ -94,8 +94,6 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"fetch", "retrieve", "read"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		j, err := user.Get(cmd.Flags())
 		if err != nil {
 			if err, ok := err.(*api.NotFoundError); ok {
@@ -127,8 +125,6 @@ Valid email formats: https://www.site24x7.com/help/api/#alerting_constants
 Valid resource types: https://www.site24x7.com/help/api/#resource_type_constants`,
 	Aliases: []string{"modify"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		json, err := user.Update(cmd.Flags())
 		if err != nil {
 			// Handle a known error just a bit more cleanly
@@ -157,8 +153,6 @@ support retrieval by email address, albeit less efficient, for improved
 usability.`,
 	Aliases: []string{"del", "rm", "remove"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		err := user.Delete(cmd.Flags())
 		if err != nil {
 			return err
@@ -177,8 +171,6 @@ var userListCmd = &cobra.Command{
 	Long:    `Retrieves a list of all users.`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		json, err := user.List()
 		if err != nil {
 			return err

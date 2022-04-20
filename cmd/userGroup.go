@@ -35,6 +35,8 @@ https://www.site24x7.com/help/api/#user-groups`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// authenticate before all non-config commands
 		api.Authenticate()
+		// set the log verbosity for any monitor_group command execution
+		logger.SetVerbosity(cmd.Flags())
 	},
 	// Run: func(cmd *cobra.Command, args []string) {
 	//  NOOP - requires subcommand
@@ -60,8 +62,6 @@ https://www.site24x7.com/help/api/#create-user-group`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		name := args[0]
 		json, err := usergroup.Create(name, cmd.Flags())
 		if err != nil {
@@ -98,8 +98,6 @@ https://www.site24x7.com/help/api/#retrieve-user-group`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		id := args[0]
 		j, err := usergroup.Get(id)
 		if err != nil {
@@ -126,8 +124,6 @@ https://www.site24x7.com/help/api/#retrieve-user-group`,
 // https://www.site24x7.com/help/api/#update-user-group`,
 // 	Aliases: []string{"modify"},
 // 	RunE: func(cmd *cobra.Command, args []string) error {
-// 		logger.SetVerbosity(cmd.Flags())
-
 // 		id := args[0]
 // 		json, err := usergroup.Update(id, cmd.Flags())
 // 		if err != nil {
@@ -164,8 +160,6 @@ https://www.site24x7.com/help/api/#delete-user-group`,
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		id := args[0]
 		err := usergroup.Delete(id)
 		if err != nil {
@@ -187,8 +181,6 @@ var userGroupListCmd = &cobra.Command{
 https://www.site24x7.com/help/api/#list-of-all-user-groups`,
 	Aliases: []string{"ls"},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.SetVerbosity(cmd.Flags())
-
 		json, err := usergroup.List()
 		if err != nil {
 			return err
