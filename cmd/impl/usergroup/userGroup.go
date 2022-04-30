@@ -3,8 +3,8 @@ package usergroup
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"site24x7/api"
+	"site24x7/cmd/impl"
 	"site24x7/logger"
 
 	"github.com/spf13/pflag"
@@ -51,25 +51,6 @@ var get = func(id string) (*api.UserGroup, error) {
 	return &ug, nil
 }
 
-// setProperty sets a struct property
-func setProperty(v any, property string, value any) {
-	logger.Debug(fmt.Sprintf("[usergroup.setProperty] Setting %s; value: %v", property, value))
-
-	rv := reflect.ValueOf(v)
-
-	// dereference the pointer
-	rv = rv.Elem()
-
-	// lookup the field by name and set the new value
-	f := rv.FieldByName(property)
-
-	if f.IsValid() {
-		f.Set(reflect.ValueOf(value))
-	} else {
-		logger.Warn(fmt.Sprintf("[usergroup.setProperty] Invalid user group property %s; ignoring", property))
-	}
-}
-
 // Create is the implementation of the `user_group create` command
 func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	ug := &api.UserGroup{Name: name}
@@ -92,7 +73,7 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 		// normalize property name
 		p := normalizeName(f)
 
-		setProperty(ug, p, v)
+		impl.SetProperty(ug, p, v)
 	})
 
 	data, err := apiUserGroupCreate(ug)

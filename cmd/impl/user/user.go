@@ -3,9 +3,10 @@ package user
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"site24x7/api"
+	"site24x7/cmd/impl"
 	"site24x7/logger"
+
 	"strings"
 
 	"github.com/spf13/pflag"
@@ -80,26 +81,6 @@ var get = func(id string, email string) (*api.User, error) {
 	return &u, nil
 }
 
-// setProperty sets either a user property or a property on one of a user's
-// nested property structures.
-func setProperty(v any, property string, value any) {
-	logger.Debug(fmt.Sprintf("Setting %s; value: %v\n", property, value))
-
-	rv := reflect.ValueOf(v)
-
-	// dereference the pointer
-	rv = rv.Elem()
-
-	// lookup the field by name and set the new value
-	f := rv.FieldByName(property)
-
-	if f.IsValid() {
-		f.Set(reflect.ValueOf(value))
-	} else {
-		logger.Warn(fmt.Sprintf("[usergroup.setProperty] Invalid user group property %s; ignoring", property))
-	}
-}
-
 // Create is the implementation of the `user create` command
 func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 	// Panics if a flag doesn't validate
@@ -136,13 +117,13 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 		p := normalizeName(f)
 
 		if strings.HasPrefix(p, "AlertingPeriod") {
-			setProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
+			impl.SetProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
 		} else if strings.HasPrefix(p, "Alert") {
-			setProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
+			impl.SetProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
 		} else if strings.HasPrefix(p, "Mobile") {
-			setProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
+			impl.SetProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
 		} else {
-			setProperty(u, p, v)
+			impl.SetProperty(u, p, v)
 		}
 	})
 
@@ -216,13 +197,13 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 		p := normalizeName(f)
 
 		if strings.HasPrefix(p, "AlertingPeriod") {
-			setProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
+			impl.SetProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
 		} else if strings.HasPrefix(p, "Alert") {
-			setProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
+			impl.SetProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
 		} else if strings.HasPrefix(p, "Mobile") {
-			setProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
+			impl.SetProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
 		} else {
-			setProperty(u, p, v)
+			impl.SetProperty(u, p, v)
 		}
 	})
 

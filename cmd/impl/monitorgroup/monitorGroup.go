@@ -3,8 +3,8 @@ package monitorgroup
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"site24x7/api"
+	"site24x7/cmd/impl"
 	"site24x7/logger"
 
 	"github.com/spf13/pflag"
@@ -50,25 +50,6 @@ var get = func(id string) (*api.MonitorGroup, error) {
 	return &mg, nil
 }
 
-// setProperty sets a struct property
-func setProperty(v any, property string, value any) {
-	logger.Debug(fmt.Sprintf("[monitorgroup.setProperty] Setting %s; value: %v", property, value))
-
-	rv := reflect.ValueOf(v)
-
-	// dereference the pointer
-	rv = rv.Elem()
-
-	// lookup the field by name and set the new value
-	f := rv.FieldByName(property)
-
-	if f.IsValid() {
-		f.Set(reflect.ValueOf(value))
-	} else {
-		logger.Warn(fmt.Sprintf("[monitorgroup.setProperty] Invalid monitor group property %s; ignoring", property))
-	}
-}
-
 // Create is the implementation of the `monitor_group create` command
 func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	mg := &api.MonitorGroup{Name: name}
@@ -93,7 +74,7 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 		// normalize property name
 		p := normalizeName(f)
 
-		setProperty(mg, p, v)
+		impl.SetProperty(mg, p, v)
 	})
 
 	data, err := apiMonitorGroupCreate(mg)
@@ -155,7 +136,7 @@ func Update(id string, fs *pflag.FlagSet) ([]byte, error) {
 		// normalize property name
 		p := normalizeName(f)
 
-		setProperty(mg, p, v)
+		impl.SetProperty(mg, p, v)
 	})
 
 	data, err := apiMonitorGroupUpdate(mg)
