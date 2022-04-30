@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"site24x7/api"
 	"site24x7/cmd/impl"
-	"site24x7/logger"
 
 	"strings"
 
@@ -95,35 +94,16 @@ func Create(email string, fs *pflag.FlagSet) ([]byte, error) {
 			return
 		}
 
-		// Extract the appropriately typed value from the flag
-		var v any
-		switch f.Value.Type() {
-		case "string":
-			v, _ = fs.GetString(f.Name)
-		case "int":
-			v, _ = fs.GetInt(f.Name)
-		case "stringSlice":
-			v, _ = fs.GetStringSlice(f.Name)
-		case "intSlice":
-			v, _ = fs.GetIntSlice(f.Name)
-		case "bool":
-			v, _ = fs.GetBool(f.Name)
-		default:
-			// This is a problem, but I'm not sure it needs to be a fatal one
-			logger.Warn(fmt.Sprintf("[user.Create] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
-		}
-
-		// normalize property name
-		p := normalizeName(f)
-
-		if strings.HasPrefix(p, "AlertingPeriod") {
-			impl.SetProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
-		} else if strings.HasPrefix(p, "Alert") {
-			impl.SetProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
-		} else if strings.HasPrefix(p, "Mobile") {
-			impl.SetProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
+		property := normalizeName(f)
+		value := impl.TypedFlagValue(fs, f)
+		if strings.HasPrefix(property, "AlertingPeriod") {
+			impl.SetProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(property, "AlertingPeriod", "", -1), value)
+		} else if strings.HasPrefix(property, "Alert") {
+			impl.SetProperty(&u.AlertSettings, strings.Replace(property, "Alert", "", -1), value)
+		} else if strings.HasPrefix(property, "Mobile") {
+			impl.SetProperty(&u.MobileSettings, strings.Replace(property, "Mobile", "", -1), value)
 		} else {
-			impl.SetProperty(u, p, v)
+			impl.SetProperty(u, property, value)
 		}
 	})
 
@@ -175,35 +155,16 @@ func Update(fs *pflag.FlagSet) ([]byte, error) {
 
 	// Hydrate the user, updating ONLY flags that were set
 	fs.Visit(func(f *pflag.Flag) {
-		// Extract the appropriately typed value from the flag
-		var v any
-		switch f.Value.Type() {
-		case "string":
-			v, _ = fs.GetString(f.Name)
-		case "int":
-			v, _ = fs.GetInt(f.Name)
-		case "stringSlice":
-			v, _ = fs.GetStringSlice(f.Name)
-		case "intSlice":
-			v, _ = fs.GetIntSlice(f.Name)
-		case "bool":
-			v, _ = fs.GetBool(f.Name)
-		default:
-			// This is a problem, but I'm not sure it needs to be a fatal one
-			logger.Warn(fmt.Sprintf("[user.Update] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
-		}
-
-		// normalize property name
-		p := normalizeName(f)
-
-		if strings.HasPrefix(p, "AlertingPeriod") {
-			impl.SetProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(p, "AlertingPeriod", "", -1), v)
-		} else if strings.HasPrefix(p, "Alert") {
-			impl.SetProperty(&u.AlertSettings, strings.Replace(p, "Alert", "", -1), v)
-		} else if strings.HasPrefix(p, "Mobile") {
-			impl.SetProperty(&u.MobileSettings, strings.Replace(p, "Mobile", "", -1), v)
+		property := normalizeName(f)
+		value := impl.TypedFlagValue(fs, f)
+		if strings.HasPrefix(property, "AlertingPeriod") {
+			impl.SetProperty(&u.AlertSettings.AlertingPeriod, strings.Replace(property, "AlertingPeriod", "", -1), value)
+		} else if strings.HasPrefix(property, "Alert") {
+			impl.SetProperty(&u.AlertSettings, strings.Replace(property, "Alert", "", -1), value)
+		} else if strings.HasPrefix(property, "Mobile") {
+			impl.SetProperty(&u.MobileSettings, strings.Replace(property, "Mobile", "", -1), value)
 		} else {
-			impl.SetProperty(u, p, v)
+			impl.SetProperty(u, property, value)
 		}
 	})
 

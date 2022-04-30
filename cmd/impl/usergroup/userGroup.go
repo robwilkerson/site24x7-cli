@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"site24x7/api"
 	"site24x7/cmd/impl"
-	"site24x7/logger"
 
 	"github.com/spf13/pflag"
 )
@@ -55,25 +54,10 @@ var get = func(id string) (*api.UserGroup, error) {
 func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	ug := &api.UserGroup{Name: name}
 	fs.VisitAll(func(f *pflag.Flag) {
-		// Extract the appropriately typed value from the flag
-		var v any
-		switch f.Value.Type() {
-		case "string":
-			v, _ = fs.GetString(f.Name)
-		case "int":
-			v, _ = fs.GetInt(f.Name)
-		case "stringSlice":
-			v, _ = fs.GetStringSlice(f.Name)
-		default:
-			// This is a problem, but I'm not sure it needs to be a fatal one
-			logger.Warn(fmt.Sprintf("[usergroup.Create] Unhandled data type (%s) for the %s flag; ignoring", f.Value.Type(), f.Name))
-			return
-		}
+		property := normalizeName(f)
+		value := impl.TypedFlagValue(fs, f)
 
-		// normalize property name
-		p := normalizeName(f)
-
-		impl.SetProperty(ug, p, v)
+		impl.SetProperty(ug, property, value)
 	})
 
 	data, err := apiUserGroupCreate(ug)
@@ -104,6 +88,8 @@ func Get(id string) ([]byte, error) {
 
 	return j, nil
 }
+
+// TODO: update
 
 // Delete is the implementation of the `monitor_group delete` command
 func Delete(id string) error {

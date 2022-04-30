@@ -54,27 +54,10 @@ var get = func(id string) (*api.MonitorGroup, error) {
 func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 	mg := &api.MonitorGroup{Name: name}
 	fs.VisitAll(func(f *pflag.Flag) {
-		// Extract the appropriately typed value from the flag
-		var v any
-		switch f.Value.Type() {
-		case "string":
-			v, _ = fs.GetString(f.Name)
-		case "int":
-			v, _ = fs.GetInt(f.Name)
-		case "stringSlice":
-			v, _ = fs.GetStringSlice(f.Name)
-		case "bool":
-			v, _ = fs.GetBool(f.Name)
-		default:
-			// This is a problem, but I'm not sure it needs to be a fatal one
-			logger.Warn(fmt.Sprintf("[monitorGroup.Create] Unhandled data type (%s) for the %s flag; ignoring", f.Value.Type(), f.Name))
-			return
-		}
+		property := normalizeName(f)
+		value := impl.TypedFlagValue(fs, f)
 
-		// normalize property name
-		p := normalizeName(f)
-
-		impl.SetProperty(mg, p, v)
+		impl.SetProperty(mg, property, value)
 	})
 
 	data, err := apiMonitorGroupCreate(mg)
@@ -119,24 +102,10 @@ func Update(id string, fs *pflag.FlagSet) ([]byte, error) {
 
 	// Hydrate the user, updating ONLY flags that were set
 	fs.Visit(func(f *pflag.Flag) {
-		// Extract the appropriately typed value from the flag
-		var v any
-		switch f.Value.Type() {
-		case "string":
-			v, _ = fs.GetString(f.Name)
-		case "int":
-			v, _ = fs.GetInt(f.Name)
-		case "stringSlice":
-			v, _ = fs.GetStringSlice(f.Name)
-		default:
-			// This is a problem, but I'm not sure it needs to be a fatal one
-			logger.Warn(fmt.Sprintf("[monitorgroup.Update] Unhandled data type (%s) for the %s flag", f.Value.Type(), f.Name))
-		}
+		property := normalizeName(f)
+		value := impl.TypedFlagValue(fs, f)
 
-		// normalize property name
-		p := normalizeName(f)
-
-		impl.SetProperty(mg, p, v)
+		impl.SetProperty(mg, property, value)
 	})
 
 	data, err := apiMonitorGroupUpdate(mg)
