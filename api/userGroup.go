@@ -88,6 +88,31 @@ func UserGroupGet(id string) (json.RawMessage, error) {
 	return res.Data, nil
 }
 
+// UserGroupUpdate updates a user group
+// https://www.site24x7.com/help/api/#update-user-group
+func UserGroupUpdate(ug *UserGroup) (json.RawMessage, error) {
+	b := ug.toRequestBody()
+
+	req := Request{
+		Endpoint: fmt.Sprintf("%s/user_groups/%s", os.Getenv("API_BASE_URL"), ug.ID),
+		Method:   "PUT",
+		Headers: http.Header{
+			"Accept": {"application/json; version=2.0"},
+		},
+		Body: b,
+	}
+	req.Headers.Set(httpHeader())
+	res, err := req.Fetch()
+	if err != nil {
+		return nil, err
+	}
+	if string(res.Data) == "{}" || res.Message != "success" {
+		return nil, fmt.Errorf("[api.UserGroupUpdate] API Response error; %s", res.Message)
+	}
+
+	return res.Data, nil
+}
+
 // UserGroupDelete removes a user group
 func UserGroupDelete(id string) error {
 	req := Request{

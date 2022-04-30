@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"site24x7/api"
 	"site24x7/cmd/impl"
+	"site24x7/logger"
 
 	"github.com/spf13/pflag"
 )
@@ -14,7 +15,7 @@ import (
 var apiUserGroupCreate = api.UserGroupCreate
 var apiUserGroupGet = api.UserGroupGet
 
-// var apiUserGroupUpdate = api.UserGroupUpdate
+var apiUserGroupUpdate = api.UserGroupUpdate
 var apiUserGroupDelete = api.UserGroupDelete
 var apiUserGroupList = api.UserGroupList
 
@@ -65,7 +66,7 @@ func Create(name string, fs *pflag.FlagSet) ([]byte, error) {
 		return nil, err
 	}
 
-	// Ensure that we have a fully hydrated user struct
+	// Ensure that we have a fully hydrated user group struct
 	var usergru api.UserGroup
 	if err = json.Unmarshal(data, &usergru); err != nil {
 		return nil, fmt.Errorf("[usergroup.Create] Unable to  parse response data (%s)", err)
@@ -89,7 +90,40 @@ func Get(id string) ([]byte, error) {
 	return j, nil
 }
 
-// TODO: update
+// Update is the implementation of the `user_group update` command
+func Update(id string, fs *pflag.FlagSet) ([]byte, error) {
+	logger.Info(fmt.Sprintf("[UserGroup.Update] Updating group with ID %s", id))
+
+	ug, err := get(id)
+	if err != nil {
+		return nil, err
+	}
+
+	logger.Debug(fmt.Sprintf("[UserGroup.Update] Fetched group %+v", ug))
+
+	// Hydrate the user, updating ONLY flags that were set
+	fs.Visit(func(f *pflag.Flag) {
+		property := normalizeName(f)
+		value := impl.TypedFlagValue(fs, f)
+
+		impl.SetProperty(ug, property, value)
+	})
+
+	data, err := apiUserGroupUpdate(ug)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ensure that we have a fully hydrated user struct
+	var ugOut api.UserGroup
+	if err = json.Unmarshal(data, &ugOut); err != nil {
+		return nil, fmt.Errorf("[monitorgroup.Update] Unable to  parse response data (%s)", err)
+	}
+
+	j, _ := json.MarshalIndent(ugOut, "", "    ")
+
+	return j, nil
+}
 
 // Delete is the implementation of the `monitor_group delete` command
 func Delete(id string) error {

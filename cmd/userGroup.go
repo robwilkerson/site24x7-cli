@@ -116,31 +116,31 @@ https://www.site24x7.com/help/api/#retrieve-user-group`,
 }
 
 // userGroupUpdateCmd represents the `user_group update` subcommand
-// var userGroupUpdateCmd = &cobra.Command{
-// 	Use:   "update <id>",
-// 	Short: "Updates an existing user group",
-// 	Long: `Updates an existing user group.
+var userGroupUpdateCmd = &cobra.Command{
+	Use:   "update <id>",
+	Short: "Updates an existing user group",
+	Long: `Updates an existing user group.
 
-// https://www.site24x7.com/help/api/#update-user-group`,
-// 	Aliases: []string{"modify"},
-// 	RunE: func(cmd *cobra.Command, args []string) error {
-// 		id := args[0]
-// 		json, err := usergroup.Update(id, cmd.Flags())
-// 		if err != nil {
-// 			// Handle a known error just a bit more cleanly
-// 			if err, ok := err.(*api.NotFoundError); ok {
-// 				logger.Warn(err.Error())
-// 				return nil
-// 			}
+https://www.site24x7.com/help/api/#update-user-group`,
+	Aliases: []string{"modify"},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		id := args[0]
+		json, err := usergroup.Update(id, cmd.Flags())
+		if err != nil {
+			// Handle a known error just a bit more cleanly
+			if err, ok := err.(*api.NotFoundError); ok {
+				logger.Warn(err.Error())
+				return nil
+			}
 
-// 			return err
-// 		}
+			return err
+		}
 
-// 		logger.Out(string(json))
+		logger.Out(string(json))
 
-// 		return nil
-// 	},
-// }
+		return nil
+	},
+}
 
 // userGroupDeleteCmd represents the `user_group delete` subcommand
 var userGroupDeleteCmd = &cobra.Command{
@@ -196,7 +196,7 @@ func init() {
 	rootCmd.AddCommand(userGroupCmd)
 	userGroupCmd.AddCommand(userGroupCreateCmd)
 	userGroupCmd.AddCommand(userGroupGetCmd)
-	// userGroupCmd.AddCommand(userGroupUpdateCmd)
+	userGroupCmd.AddCommand(userGroupUpdateCmd)
 	userGroupCmd.AddCommand(userGroupDeleteCmd)
 	userGroupCmd.AddCommand(userGroupListCmd)
 
@@ -205,5 +205,5 @@ func init() {
 	userGroupCreateCmd.MarkFlagRequired("users")
 
 	// Flags for the `user_group update` command
-	// userGroupUpdateCmd.Flags().AddFlagSet(usergroup.GetWriterFlags())
+	userGroupUpdateCmd.Flags().AddFlagSet(usergroup.GetWriterFlags())
 }
