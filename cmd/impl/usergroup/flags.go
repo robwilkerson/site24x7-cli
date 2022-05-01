@@ -11,9 +11,9 @@ import (
 func GetWriterFlags() *pflag.FlagSet {
 	writerFlags := pflag.NewFlagSet("writerFlags", pflag.ExitOnError)
 	writerFlags.StringP("name", "n", "Erroneously Unnamed Group", "The group name")
+	writerFlags.StringSliceP("users", "u", []string{}, "Identifiers of any users that should be added to the group")
 	writerFlags.Int("product", 0, "Product for which the user group is being created; see https://www.site24x7.com/help/api/#product_constants")
 	writerFlags.String("attribute-group-id", "", "Any attribute alert group that should be associated")
-	writerFlags.StringSliceP("users", "u", []string{}, "Identifiers of any users that should be added to the group")
 
 	return writerFlags
 }

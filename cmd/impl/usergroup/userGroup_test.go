@@ -300,6 +300,116 @@ func TestGet(t *testing.T) {
 	}
 }
 
+func TestUpdate(t *testing.T) {
+	type args struct {
+		id string
+		fs *pflag.FlagSet
+	}
+
+	fs := GetWriterFlags()
+
+	mockGroup := &api.UserGroup{ID: "1001001SOS", Name: "Test Group"}
+	mockGroupUpdated := &api.UserGroup{
+		ID:             "1001001SOS",
+		Name:           "Updated Test Group",
+		Product:        0,
+		Users:          []string{"Foo", "Bar", "Baz"},
+		AttributeGroup: "",
+	}
+	mockGroupUpdatedPrettyJSON, _ := json.MarshalIndent(mockGroupUpdated, "", "    ")
+
+	tests := []struct {
+		name             string
+		args             args
+		before           func()
+		getFn            func(id string) (*api.UserGroup, error)
+		apiGroupUpdateFn func(u *api.UserGroup) (json.RawMessage, error)
+		want             []byte
+		wantErr          bool
+		wantErrMsg       string
+	}{
+		{
+			name: "Handles an error from the get function",
+			args: args{
+				id: "1001001SOS",
+				fs: fs,
+			},
+			before: func() {
+				// noop
+			},
+			getFn: func(id string) (*api.UserGroup, error) {
+				return nil, errors.New("testing!")
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Handles an API error",
+			args: args{
+				id: "1001001SOS",
+				fs: fs,
+			},
+			before: func() {
+				// noop
+			},
+			getFn: func(id string) (*api.UserGroup, error) {
+				return mockGroup, nil
+			},
+			apiGroupUpdateFn: func(u *api.UserGroup) (json.RawMessage, error) {
+				return nil, errors.New("testing!")
+			},
+			want:       nil,
+			wantErr:    true,
+			wantErrMsg: "testing!",
+		},
+		{
+			name: "Updates an existing group",
+			args: args{
+				fs: fs,
+			},
+			before: func() {
+				// The .Set() function flips the .Changed flag
+				fs.Set("name", "Updated Test Group")
+				fs.Set("users", "Foo")
+				fs.Set("users", "Bar")
+				fs.Set("users", "Baz")
+				// this flag should be ignored
+				fs.Set("ignore-me", "boo!")
+			},
+			getFn: func(id string) (*api.UserGroup, error) {
+				return mockGroup, nil
+			},
+			apiGroupUpdateFn: func(u *api.UserGroup) (json.RawMessage, error) {
+				// return what was sent
+				j, _ := json.Marshal(u)
+
+				return j, nil
+			},
+			want:    mockGroupUpdatedPrettyJSON,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		get = tt.getFn
+		apiUserGroupUpdate = tt.apiGroupUpdateFn
+		t.Run(tt.name, func(t *testing.T) {
+			tt.before()
+			got, err := Update(tt.args.id, tt.args.fs)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && !strings.Contains(err.Error(), tt.wantErrMsg) {
+				t.Errorf("Update() error = %v, wantErrMsg \"%s\"", err, tt.wantErrMsg)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Update() = %v, want %v", string(got), string(tt.want))
+			}
+		})
+	}
+}
+
 func TestDelete(t *testing.T) {
 	type args struct {
 		id string
