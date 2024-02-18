@@ -95,6 +95,13 @@ at $HOME/<username>/.site24x7.yaml.`,
 			return nil
 		}
 
+		// Update the client values if we're not dealing with a refresh token
+		// only call
+		if !updateRefreshTokenOnly {
+			viper.Set("auth.client_id", clientID)
+			viper.Set("auth.client_secret", clientSecret)
+		}
+
 		// Exchange the grant token for a refresh token
 		refreshToken, err := api.Configure(grantToken)
 		if err != nil {
@@ -102,11 +109,6 @@ at $HOME/<username>/.site24x7.yaml.`,
 			return fmt.Errorf("%s", err)
 		}
 
-		// Write the information provided to the Cobra config file
-		if !updateRefreshTokenOnly {
-			viper.Set("auth.client_id", clientID)
-			viper.Set("auth.client_secret", clientSecret)
-		}
 		viper.Set("auth.refresh_token", refreshToken)
 		if err = viper.WriteConfig(); err != nil {
 			return fmt.Errorf("unable to complete configuration (%s)", err)
