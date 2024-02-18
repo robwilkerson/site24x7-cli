@@ -18,7 +18,7 @@ To register an application and generate a client ID, client secret, and grant to
 
 If you're interested in contributing to the improvement, you'll need the tools to do so.
 
-1. [Go v1.17.5](https://golang.org) - other versions may work, but I've only tested on this one
+1. [Go v1.18+](https://golang.org) - other versions may work, but I've only tested on this one
 
     There are other ways, of course, but for maximum flexibility, I installed Go using [asdf](https://asdf-vm.com). See the installation instructions below.
 
