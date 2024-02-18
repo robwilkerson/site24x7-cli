@@ -1,0 +1,19 @@
+name: Continuous Integration
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-versions: [ '1.17.5', '1.19' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-versions: ${{ matrix.go-versions }}
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -v ./... -cover
