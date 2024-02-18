@@ -2,8 +2,6 @@
 
 [![Build](https://github.com/robwilkerson/site24x7-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/robwilkerson/site24x7-cli/actions/workflows/ci.yml)
 
-[![Build Status](https://app.travis-ci.com/robwilkerson/site24x7-cli.svg?branch=main)](https://app.travis-ci.com/robwilkerson/site24x7-cli)
-
 A CLI tool for interacting with the [Site24x7 API](https://www.site24x7.com/help/api/#introduction).
 
 This is currently _early alpha-level software at best_. The content of this README is anticipatory more than actual.
