@@ -60,9 +60,10 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	}
 	req.Header = r.Headers
 
-	// Uncomment to debug requests
-	// dump, _ := httputil.DumpRequestOut(req, true)
-	// fmt.Printf("%q\n", dump)
+	if logger.GetVerbosity() == logger.DEBUG {
+		dumpreq, _ := httputil.DumpRequestOut(req, true)
+		logger.Debug(fmt.Sprintf("[api.FetchAuthToken] Request: %q\n", dumpreq))
+	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -70,7 +71,12 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 	}
 	defer res.Body.Close()
 
-	b, err := ioutil.ReadAll(res.Body)
+	if logger.GetVerbosity() == logger.DEBUG {
+		dumpres, _ := httputil.DumpResponse(res, true)
+		logger.Debug(fmt.Sprintf("[api.FetchAuthToken] Response: %q\n", dumpres))
+	}
+
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("[api.FetchAuthToken] ERROR: Unable to read response body (%s)", err)
 	}
@@ -101,9 +107,10 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 	// Apply common headers
 	req.Header.Set("Content-Type", "application/json;charset=UTF-8")
 
-	// TODO: only do the work if verbosity == debug?
-	dumpreq, _ := httputil.DumpRequestOut(req, true)
-	logger.Debug(fmt.Sprintf("[api.Fetch] Request: %q\n", dumpreq))
+	if logger.GetVerbosity() == logger.DEBUG {
+		dumpreq, _ := httputil.DumpRequestOut(req, true)
+		logger.Debug(fmt.Sprintf("[api.Fetch] Request: %q\n", dumpreq))
+	}
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -111,9 +118,10 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 	}
 	defer res.Body.Close()
 
-	// TODO: only do the work if verbosity == debug?
-	dumpres, _ := httputil.DumpResponse(res, true)
-	logger.Debug(fmt.Sprintf("[api.Fetch] Response: %q\n", dumpres))
+	if logger.GetVerbosity() == logger.DEBUG {
+		dumpres, _ := httputil.DumpResponse(res, true)
+		logger.Debug(fmt.Sprintf("[api.Fetch] Response: %q\n", dumpres))
+	}
 
 	b, err := io.ReadAll(res.Body)
 	if err != nil {

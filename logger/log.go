@@ -9,10 +9,10 @@ import (
 )
 
 const (
-	silent = -1
-	warn   = iota - 1
-	info
-	debug
+	SILENT = -1
+	WARN   = iota - 1
+	INFO
+	DEBUG
 )
 
 // SetLevel is a means of setting a persistent value to define output needs.
@@ -22,7 +22,7 @@ func SetVerbosity(fs *pflag.FlagSet) int {
 	verbosity, _ := fs.GetCount("verbose")
 
 	if quiet {
-		verbosity = silent
+		verbosity = SILENT
 	}
 
 	if err := os.Setenv("VERBOSITY", fmt.Sprintf("%d", verbosity)); err != nil {
@@ -40,13 +40,13 @@ func GetVerbosity() int {
 	}
 
 	// Default to no informational output
-	return warn
+	return WARN
 }
 
 // Out writes a message to stdout as long as quiet mode is off; useful for
 // command output
 func Out(msg string) {
-	if v := GetVerbosity(); v != silent {
+	if v := GetVerbosity(); v != SILENT {
 		fmt.Fprintln(os.Stdout, msg)
 	}
 }
@@ -54,7 +54,7 @@ func Out(msg string) {
 // Warn writes a key message to stderr so as not to interfere with handling json
 // on stdout
 func Warn(msg string) {
-	if v := GetVerbosity(); v != silent && v >= warn {
+	if v := GetVerbosity(); v >= WARN {
 		fmt.Fprintln(os.Stderr, "[ WARN ] ", msg)
 	}
 }
@@ -62,7 +62,7 @@ func Warn(msg string) {
 // Info writes an extended message to stderr so as not to interfere with handling
 // json on stdout
 func Info(msg string) {
-	if v := GetVerbosity(); v != silent && v >= info {
+	if v := GetVerbosity(); v >= INFO {
 		fmt.Fprintln(os.Stderr, "[ INFO ] ", msg)
 	}
 }
@@ -70,7 +70,7 @@ func Info(msg string) {
 // Debug writes a verbose message to stderr so as not to interfere with handling
 // json on stdout
 func Debug(msg string) {
-	if v := GetVerbosity(); v != silent && v >= debug {
+	if v := GetVerbosity(); v >= DEBUG {
 		fmt.Fprintln(os.Stderr, "[ DEBUG ]", msg)
 	}
 }
