@@ -4,23 +4,21 @@
 
 A CLI tool for interacting with the [Site24x7 API](https://www.site24x7.com/help/api/#introduction).
 
-This is currently _early alpha-level software at best_. The content of this README is anticipatory more than actual.
-
 ## Prerequisites
 
 1. A Site24x7 account
 2. A registered [Site24x7 application](https://api-console.zoho.com)
 3. Access to the client ID, client secret, and an appropriately scoped grant token for the aforementioned application
 
-To register an application and generate a client ID, client secret, and grant token, follow the [API authentication instructions](https://www.site24x7.com/help/api/#authentication)
+To register an application and generate a client ID, client secret, and a grant token, follow the [API authentication instructions](https://www.site24x7.com/help/api/#authentication)
 
 ### For Developers
 
 If you're interested in contributing to the improvement, you'll need the tools to do so.
 
-1. [Go v1.18+](https://golang.org) - other versions may work, but I've only tested on this one
+1. [Go v1.18+](https://golang.org)
 
-    There are other ways, of course, but for maximum flexibility, I installed Go using [asdf](https://asdf-vm.com). See the installation instructions below.
+    There are other ways, of course, but for maximum flexibility, I installed Go using [asdf](https://asdf-vm.com). See the **Development** instructions below.
 
 ## Installation
 
