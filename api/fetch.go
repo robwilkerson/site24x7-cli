@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -115,7 +115,7 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 	dumpres, _ := httputil.DumpResponse(res, true)
 	logger.Debug(fmt.Sprintf("[api.Fetch] Response: %q\n", dumpres))
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, fmt.Errorf("[api.Fetch] ERROR: Unable to read response body (%s)", err)
 	}
