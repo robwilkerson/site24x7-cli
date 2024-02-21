@@ -33,11 +33,11 @@ func Test_list(t *testing.T) {
 		{
 			name: "Handles an API error",
 			apiListFn: func() (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns a list of users",
@@ -91,11 +91,11 @@ func Test_findByEmail(t *testing.T) {
 				email: "aqua@man.com",
 			},
 			listFn: func() ([]api.User, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Throws a user not found error",
@@ -168,11 +168,11 @@ func Test_get(t *testing.T) {
 				email: "foo@bar.com",
 			},
 			findFn: func(email string) (*api.User, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "By email: Returns formatted json if found",
@@ -193,11 +193,11 @@ func Test_get(t *testing.T) {
 				email: "",
 			},
 			apiGetFn: func(userID string) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "By ID: Returns formatted JSON",
@@ -261,11 +261,11 @@ func TestGet(t *testing.T) {
 				fs: e,
 			},
 			getFn: func(id string, email string) (*api.User, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns formatted json if found",
@@ -315,11 +315,11 @@ func TestList(t *testing.T) {
 		{
 			name: "Handles an error from the list function",
 			listFn: func() ([]api.User, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns a list of users",
@@ -414,11 +414,11 @@ func TestCreate(t *testing.T) {
 				fs:    GetWriterFlags(),
 			},
 			apiCreateFn: func(u *api.User) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Creates a default user",
@@ -509,11 +509,11 @@ func TestUpdate(t *testing.T) {
 				// noop
 			},
 			getFn: func(id string, email string) (*api.User, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Handles an API error",
@@ -527,11 +527,11 @@ func TestUpdate(t *testing.T) {
 				return mockUser, nil
 			},
 			apiUserUpdateFn: func(u *api.User) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Updates an existing user",
@@ -606,14 +606,14 @@ func TestDelete(t *testing.T) {
 				fs: fs,
 			},
 			getFn: func(id string, email string) (*api.User, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			apiDeleteFn: func(id string) error {
 				// noop
 				return nil
 			},
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Handles an API error",
@@ -624,10 +624,10 @@ func TestDelete(t *testing.T) {
 				return &api.User{ID: "1001001SOS"}, nil
 			},
 			apiDeleteFn: func(id string) error {
-				return errors.New("testing!")
+				return errors.New("testing")
 			},
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns successfully",

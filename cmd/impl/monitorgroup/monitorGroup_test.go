@@ -42,7 +42,7 @@ func Test_list(t *testing.T) {
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns a list of monitor groups",
@@ -101,7 +101,7 @@ func TestList(t *testing.T) {
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns a list of users",
@@ -164,11 +164,11 @@ func TestCreate(t *testing.T) {
 				fs:   GetWriterFlags(),
 			},
 			apiCreateFn: func(u *api.MonitorGroup) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Creates a monitor group",
@@ -235,11 +235,11 @@ func TestGet(t *testing.T) {
 				fs: mockFlagSet,
 			},
 			apiGetFn: func(id string) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns formatted json",
@@ -310,11 +310,11 @@ func TestUpdate(t *testing.T) {
 				// noop
 			},
 			getFn: func(id string) (*api.MonitorGroup, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Handles an API error",
@@ -329,11 +329,11 @@ func TestUpdate(t *testing.T) {
 				return mockGroup, nil
 			},
 			apiGroupUpdateFn: func(u *api.MonitorGroup) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Updates an existing user",
@@ -405,10 +405,10 @@ func TestDelete(t *testing.T) {
 				fs: mockFlagSet,
 			},
 			apiDeleteFn: func(id string) error {
-				return errors.New("testing!")
+				return errors.New("testing")
 			},
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns successfully",

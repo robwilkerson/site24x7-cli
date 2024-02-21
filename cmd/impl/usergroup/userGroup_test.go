@@ -38,11 +38,11 @@ func Test_list(t *testing.T) {
 		{
 			name: "Handles an API error",
 			apiListFn: func() (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Handles a JSON parsing error",
@@ -111,11 +111,11 @@ func Test_get(t *testing.T) {
 				id: "1001001SOS",
 			},
 			apiGetFn: func(test string) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Handles a malformed API response",
@@ -264,11 +264,11 @@ func TestGet(t *testing.T) {
 				id: "1001001SOS",
 			},
 			getFn: func(id string) (*api.UserGroup, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns formatted json if found",
@@ -338,11 +338,11 @@ func TestUpdate(t *testing.T) {
 				// noop
 			},
 			getFn: func(id string) (*api.UserGroup, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Handles an API error",
@@ -357,11 +357,11 @@ func TestUpdate(t *testing.T) {
 				return mockGroup, nil
 			},
 			apiGroupUpdateFn: func(u *api.UserGroup) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Updates an existing group",
@@ -427,10 +427,10 @@ func TestDelete(t *testing.T) {
 				id: "1001001SOS",
 			},
 			apiDeleteFn: func(id string) error {
-				return errors.New("testing!")
+				return errors.New("testing")
 			},
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns successfully",
@@ -475,11 +475,11 @@ func TestList(t *testing.T) {
 		{
 			name: "Handles an error from the list function",
 			listFn: func() ([]api.UserGroup, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
-			wantErrMsg: "testing!",
+			wantErrMsg: "testing",
 		},
 		{
 			name: "Returns a list of users",
