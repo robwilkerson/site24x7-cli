@@ -38,7 +38,7 @@ func Test_list(t *testing.T) {
 		{
 			name: "Handles an API error",
 			apiListFn: func(withSubgroups bool) (json.RawMessage, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,
@@ -97,7 +97,7 @@ func TestList(t *testing.T) {
 				fs: pflag.NewFlagSet("testing", pflag.PanicOnError),
 			},
 			listFn: func(withSubgroups bool) ([]api.MonitorGroup, error) {
-				return nil, errors.New("testing!")
+				return nil, errors.New("testing")
 			},
 			want:       nil,
 			wantErr:    true,

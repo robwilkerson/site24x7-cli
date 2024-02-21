@@ -187,7 +187,7 @@ func UserUpdate(u *User) (json.RawMessage, error) {
 	return res.Data, nil
 }
 
-// Delete removes a user from the account
+// UserDelete removes a user from the account
 func UserDelete(id string) error {
 	req := Request{
 		Endpoint: fmt.Sprintf("%s/users/%s", os.Getenv("API_BASE_URL"), id),

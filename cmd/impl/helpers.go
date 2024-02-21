@@ -48,7 +48,7 @@ func SetProperty(v any, property string, value any) bool {
 	return true
 }
 
-// Extracts the typed value from a flag
+// TypedFlagValue extracts the typed value from a flag
 func TypedFlagValue(fs *pflag.FlagSet, f *pflag.Flag) any {
 	var v any
 
