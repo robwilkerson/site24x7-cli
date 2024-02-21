@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_versions: [ '1.18', '1.19', '1.20', '1.21', '1.22' ]
+        go_versions: [ '1.19', '1.20', '1.21', '1.22' ]
 
     steps:
       - uses: actions/checkout@v4
@@ -22,10 +22,10 @@ jobs:
       # Static code analysis
       - name: Look for suspicious constructs
         run: go vet ./...
-      # - name: Install staticcheck
-      #   run: go install honnef.co/go/tools/cmd/staticcheck@latest
-      # - name: Perform static code analysis
-      #   run: staticcheck ./...
+      - name: Install staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      - name: Perform static code analysis
+        run: staticcheck ./...
       - name: Install golint
         run: go install golang.org/x/lint/golint@latest
       - name: Lint the code
