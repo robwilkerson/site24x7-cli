@@ -9,14 +9,14 @@ import (
 	"strings"
 )
 
-// UserAlertingPeriod sets the window of time during which alerts may be sent
+// AlertingPeriod sets the window of time during which alerts may be sent
 // to a user. Defaults to a 24 hour window: 00:00-00:00
 type AlertingPeriod struct {
 	StartTime string `json:"start_time"`
 	EndTime   string `json:"end_time"`
 }
 
-// UserAlertSettings defines a set of alert preferences
+// AlertSettings defines a set of alert preferences
 type AlertSettings struct {
 	EmailFormat                int            `json:"email_format"`
 	SkipDays                   []int          `json:"dont_alert_on_days"`
@@ -28,7 +28,7 @@ type AlertSettings struct {
 	AnomalyNotificationMethods []int          `json:"anomaly"`
 }
 
-// UserMobileSettings provides details for sending alerts to a mobile device
+// MobileSettings provides details for sending alerts to a mobile device
 type MobileSettings struct {
 	CountryCode    string `json:"country_code"`
 	PhoneNumber    string `json:"mobile_number"`
@@ -131,9 +131,9 @@ func UserCreate(u *User) (json.RawMessage, error) {
 		if strings.HasPrefix(res.Message, "Email is already registered") {
 			// Handle a "known" error just a little bit more cleanly
 			return nil, &ConflictError{"a user with that email address already exists"}
-		} else {
-			return nil, fmt.Errorf("[User.Create] API Response error; %s", res.Message)
 		}
+
+		return nil, fmt.Errorf("[User.Create] API Response error; %s", res.Message)
 	}
 
 	return res.Data, nil

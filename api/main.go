@@ -13,7 +13,7 @@ func (e *NotFoundError) Error() string {
 	return e.Message
 }
 
-// ExistsError defines a custom error that should be returned when an entity
+// ConflictError defines a custom error that should be returned when an entity
 // being created already exists.
 type ConflictError struct {
 	Message string

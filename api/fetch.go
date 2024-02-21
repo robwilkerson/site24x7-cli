@@ -22,25 +22,25 @@ type Request struct {
 	QueryString url.Values
 }
 
-// ApiResponse defines the top level schema of (almost?) every Site24x7 API
+// APIResponse defines the top level schema of (almost?) every Site24x7 API
 // response. The Data component contains the domain model data and varies wildly
 // between API calls, so it must be flexible. We'll handle it as raw JSON at
 // this stage and unmarshal it separately when we need it.
-type ApiResponse struct {
+type APIResponse struct {
 	Code    int             `json:"code"`
 	Message string          `json:"message"`
 	Data    json.RawMessage `json:"data"`
 }
 
-// EmptyApiResponse defines the schema of a response that includes no data. One
+// EmptyAPIResponse defines the schema of a response that includes no data. One
 // example of such a response comes from the POST /milestone endpoint.
 // https://www.site24x7.com/help/api/#add-a-milestone-marker
-type EmptyApiResponse struct {
+type EmptyAPIResponse struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 }
 
-// FetchToken returns a refresh token, an access token, or both depending on
+// FetchAuthToken returns a refresh token, an access token, or both depending on
 // whether a grant token or a refresh token is being exchanged.
 //
 // This endpoint is also a bit of an odd duck in that data is posted, but the
@@ -81,7 +81,7 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 		return nil, fmt.Errorf("[api.FetchAuthToken] ERROR: Unable to read response body (%s)", err)
 	}
 
-	// Weirdness #2: the endpoint returns a token, but not in ApiResponse.Data
+	// Weirdness #2: the endpoint returns a token, but not in APIResponse.Data
 	// like, well, every other endpoint I've tried thus far.
 	var t AuthToken
 	if err := json.Unmarshal(b, &t); err != nil {
@@ -92,7 +92,7 @@ func (r *Request) FetchAuthToken() (*AuthToken, error) {
 }
 
 // Fetch calls a Site24x7 API and returns the response.
-func (r *Request) Fetch() (*ApiResponse, error) {
+func (r *Request) Fetch() (*APIResponse, error) {
 	body := bytes.NewReader(r.Body)
 	qs := strings.NewReader(r.QueryString.Encode())
 
@@ -128,7 +128,7 @@ func (r *Request) Fetch() (*ApiResponse, error) {
 		return nil, fmt.Errorf("[api.Fetch] ERROR: Unable to read response body (%s)", err)
 	}
 
-	var ar ApiResponse
+	var ar APIResponse
 	if err := json.Unmarshal(b, &ar); err != nil {
 		return nil, fmt.Errorf("[api.Fetch] ERROR: Unable to  parse response body (%s)", err)
 	}
