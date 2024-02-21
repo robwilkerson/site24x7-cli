@@ -9,13 +9,14 @@ import (
 )
 
 const (
+	// SILENT should prevent any output from a command
 	SILENT = -1
 	WARN   = iota - 1
 	INFO
 	DEBUG
 )
 
-// SetLevel is a means of setting a persistent value to define output needs.
+// SetVerbosity is a means of setting a persistent value to define output needs.
 // Currently only one level of verbosity is supported.
 func SetVerbosity(fs *pflag.FlagSet) int {
 	quiet, _ := fs.GetBool("quiet")
