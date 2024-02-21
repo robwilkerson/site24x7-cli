@@ -11,8 +11,11 @@ import (
 const (
 	// SILENT should prevent any output from a command
 	SILENT = -1
-	WARN   = iota - 1
+	// WARN indicates a potential issue, but probably safe for now
+	WARN = iota - 1
+	// INFO represents informational output
 	INFO
+	// DEBUG is the most verbose level of output
 	DEBUG
 )
 
