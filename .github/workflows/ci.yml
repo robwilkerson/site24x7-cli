@@ -24,8 +24,8 @@ jobs:
         run: go vet ./...
       # - name: Install staticcheck
       #   run: go install honnef.co/go/tools/cmd/staticcheck@latest
-      - name: Perform static code analysis
-        run: staticcheck ./...
+      # - name: Perform static code analysis
+      #   run: staticcheck ./...
       - name: Install golint
         run: go install golang.org/x/lint/golint@latest
       - name: Lint the code
