@@ -18,12 +18,12 @@ jobs:
         run: go mod verify
       - name: Build
         run: go build -v ./...
-      
+
       # Static code analysis
       - name: Look for suspicious constructs
         run: go vet ./...
-      - name: Install staticcheck
-        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+      # - name: Install staticcheck
+      #   run: go install honnef.co/go/tools/cmd/staticcheck@latest
       - name: Perform static code analysis
         run: staticcheck ./...
       - name: Install golint
