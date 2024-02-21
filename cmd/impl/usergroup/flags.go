@@ -4,6 +4,8 @@ import (
 	"strings"
 
 	"github.com/spf13/pflag"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // GetWriterFlags returns the default flagset that's passed to commands that
@@ -26,7 +28,7 @@ func normalizeName(f *pflag.Flag) string {
 
 	// Everything else aligns pretty well with a "-" to CamelCase inflection
 	default:
-		t := strings.Title(f.Name)
+		t := cases.Title(language.English).String(f.Name)
 		return strings.Replace(t, "-", "", -1)
 	}
 }
